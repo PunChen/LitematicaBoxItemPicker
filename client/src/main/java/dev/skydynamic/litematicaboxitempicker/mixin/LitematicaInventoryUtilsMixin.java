@@ -1,18 +1,16 @@
 package dev.skydynamic.litematicaboxitempicker.mixin;
 
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
+import dev.skydynamic.litematicaboxitempicker.model.MoveItemCountPayload;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import fi.dy.masa.litematica.util.InventoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -48,13 +46,12 @@ public abstract class LitematicaInventoryUtilsMixin {
                     setPickedItemToHand(stack, mc);
                     ci.cancel();
                 }
-                Identifier id = new Identifier("lsbp", "move_item_count");
-                PacketByteBuf buf = PacketByteBufs.create();
-                buf.writeInt(maxMoveCount);
-                buf.writeInt(slot);
-                buf.writeItemStack(stack);
-                buf.writeItemStack(boxStack);
-                ClientPlayNetworking.send(id, buf);
+                MoveItemCountPayload payload = new MoveItemCountPayload();
+                payload.setMaxMoveCount(maxMoveCount);
+                payload.setHasItemBoxSlot(slot);
+                payload.setTargetStack(stack);
+                payload.setBoxStack(boxStack);
+                ClientPlayNetworking.send(payload);
             }
         }
     }

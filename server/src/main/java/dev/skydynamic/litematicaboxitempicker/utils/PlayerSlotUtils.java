@@ -1,13 +1,15 @@
 package dev.skydynamic.litematicaboxitempicker.utils;
 
+import dev.skydynamic.litematicaboxitempicker.Utils;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.collection.DefaultedList;
 
 public class PlayerSlotUtils {
 
@@ -41,29 +43,62 @@ public class PlayerSlotUtils {
 
     // 将盒子内的物品转移到手上
     public static void moveBoxItem(ServerPlayerEntity player, ItemStack stack, ItemStack boxStack, int maxMoveCount, int boxSlot) {
-        NbtCompound boxItemsNbtCompound = boxStack.getOrCreateNbt();
-        NbtList itemList = boxItemsNbtCompound.getCompound("BlockEntityTag").getList("Items", 10);
+        // 获得潜影盒的物品列表 todo getStoredItems getBundleItems 区别
+        DefaultedList<ItemStack> items = Utils.getBundleItems(boxStack);
         String stackItemId = Registries.ITEM.getId(stack.getItem()).toString();
-        for (int i = 0; i < itemList.size(); ++i) {
-            NbtCompound boxItemNbtCompound = itemList.getCompound(i);
-            String boxItemId = boxItemNbtCompound.getString("id");
+        for (int i = 0; i < items.size(); ++i) {
+            ItemStack oneStackInBox = items.get(i);
+            String boxItemId = oneStackInBox.getItem().toString();
             if (boxItemId.equals(stackItemId)) {
-                int itemCount = boxItemNbtCompound.getInt("Count");
+                int itemCount = oneStackInBox.getCount();
                 if (itemCount <= maxMoveCount) {
-                    ItemStack itemToGive = ItemStack.fromNbt(boxItemNbtCompound).copy();
+                    ItemStack itemToGive = oneStackInBox.copy();
                     givePlayerItems(itemToGive, player);
-                    itemList.remove(i);
-                    player.playerScreenHandler.slots.get(boxSlot).getStack().setNbt(boxItemsNbtCompound);
+                    items.remove(i);
+                    ItemStack newBox = createShulkerBoxWithItems(items);
+                    player.getInventory().setStack(boxSlot,newBox);
+                    // todo 区别
+//                    player.playerScreenHandler.slots.get(boxSlot).getStack().set(boxSlot,newBox);
                 } else {
-                    boxItemNbtCompound.putInt("Count", itemCount - maxMoveCount);
-                    ItemStack itemToGive = ItemStack.fromNbt(boxItemNbtCompound).copy();
+                    oneStackInBox.setCount(itemCount - maxMoveCount);
+                    ItemStack itemToGive = oneStackInBox.copy();
                     itemToGive.setCount(maxMoveCount);
                     givePlayerItems(itemToGive, player);
-                    player.playerScreenHandler.slots.get(boxSlot).getStack().setNbt(boxItemsNbtCompound);
+                    ItemStack newBox = createShulkerBoxWithItems(items);
+                    player.getInventory().setStack(boxSlot,newBox);
+//                    player.playerScreenHandler.slots.get(boxSlot).getStack().setNbt(boxItemsNbtCompound);
                 }
                 return;
             }
         }
+    }
+
+    public static ItemStack createShulkerBoxWithItems(DefaultedList<ItemStack> items) {
+        ItemStack itemStack = new ItemStack(RegistryEntry.of(Items.SHULKER_BOX),1);
+//        ItemConvertible value = (RegistryEntry.of(Items.SHULKER_BOX).value());
+//        itemStack.set(DataComponentTypes.CONTAINER, items);
+//        ContainerComponent container = itemStack.getComponents().get(DataComponentTypes.CONTAINER);
+//
+//        itemStack.set(DataComponentTypes.CONTAINER,container);
+//        ComponentMap.builder().addAll().build();
+
+//        if (container != null)
+//        {
+//            Iterator<ItemStack> iter = container.streamNonEmpty().iterator();
+//            container.stream()
+//            DefaultedList<ItemStack> items = DefaultedList.ofSize((int) container.streamNonEmpty().count());
+//
+//            // Using 'container.copyTo(items)' will break Litematica's Material List
+//            while (iter.hasNext())
+//            {
+//                items.add(iter.next());
+//            }
+//
+//            return items;
+//        }
+
+
+        return itemStack;
     }
 
 }

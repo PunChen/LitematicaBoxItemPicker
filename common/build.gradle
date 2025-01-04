@@ -14,26 +14,17 @@ group = project.maven_group
 archivesBaseName = project.archives_base_name + '-mc' + project.minecraft_version
 
 repositories {
-    maven { url 'https://masa.dy.fi/maven' }
-    maven { url 'https://maven.terraformersmc.com/releases/' }
-    maven { url 'https://cursemaven.com' }
 }
 
 dependencies {
-//    implementation project(':common')
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-        // Fabric API. This is technically optional, but you probably want it anyway.
+//
+//    // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version_out}:${project.malilib_version}"
-    modImplementation "curse.maven:litematica-308892:5647809"
-
-    modCompileOnlyApi "com.terraformersmc:modmenu:7.2.2"
-    }
+}
 
 processResources {
     inputs.property "version", project.version
@@ -72,6 +63,7 @@ java {
 }
 
 jar {
+//    enabled = false
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}"}
     }
