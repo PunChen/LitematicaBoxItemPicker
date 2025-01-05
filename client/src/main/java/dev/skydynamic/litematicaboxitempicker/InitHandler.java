@@ -1,6 +1,8 @@
 package dev.skydynamic.litematicaboxitempicker;
 
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
+import dev.skydynamic.litematicaboxitempicker.network.LitematicaShulkerBoxPickerHandler;
+import dev.skydynamic.litematicaboxitempicker.network.LitematicaShulkerBoxPickerPacket;
 import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.event.InputEventHandler;
 import fi.dy.masa.malilib.gui.GuiBase;
@@ -9,15 +11,27 @@ import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
 import fi.dy.masa.malilib.hotkeys.KeyCallbackToggleBooleanConfigWithMessage;
 import fi.dy.masa.malilib.interfaces.IInitializationHandler;
+import fi.dy.masa.malilib.network.ClientPlayHandler;
+import fi.dy.masa.malilib.network.IPluginClientPlayHandler;
 
 public class InitHandler implements IInitializationHandler {
+
+    private final static LitematicaShulkerBoxPickerHandler<LitematicaShulkerBoxPickerPacket.Payload> HANDLER =
+            LitematicaShulkerBoxPickerHandler.getInstance();
+
     @Override
     public void registerModHandlers() {
+        Utils.LOGGER.error("LitematicaShulkerBoxPickerHandler registerModHandlers start");
         ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, new Configs());
         InputEventHandler.getKeybindManager().registerKeybindProvider(LitematicaShulkerBoxPickerInputHandler.getInstance());
 
         Configs.Hotkeys.OPEN_GUI_MAIN_MENU.getKeybind().setCallback(new KeyCallbackHotkeys());
         Configs.Hotkeys.ENABLE_LSBP.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(Configs.Generic.ENABLE_LSBP));
+
+        ClientPlayHandler.getInstance().registerClientPlayHandler(HANDLER);
+        HANDLER.registerPlayPayload(LitematicaShulkerBoxPickerPacket.Payload.ID,
+                LitematicaShulkerBoxPickerPacket.Payload.CODEC, IPluginClientPlayHandler.BOTH_CLIENT);//客户端收发的
+        Utils.LOGGER.error("LitematicaShulkerBoxPickerHandler registerModHandlers end");
     }
 
     private static class KeyCallbackHotkeys implements IHotkeyCallback {

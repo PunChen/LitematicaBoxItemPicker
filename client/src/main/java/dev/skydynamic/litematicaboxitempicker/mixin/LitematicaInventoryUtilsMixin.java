@@ -1,12 +1,13 @@
 package dev.skydynamic.litematicaboxitempicker.mixin;
 
+import dev.skydynamic.litematicaboxitempicker.Utils;
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
-import dev.skydynamic.litematicaboxitempicker.model.MoveItemCountPayload;
+import dev.skydynamic.litematicaboxitempicker.network.LitematicaShulkerBoxPickerHandler;
+import dev.skydynamic.litematicaboxitempicker.network.LitematicaShulkerBoxPickerPacket;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import fi.dy.masa.litematica.util.InventoryUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -26,32 +27,37 @@ import static fi.dy.masa.litematica.util.InventoryUtils.setPickedItemToHand;
 public abstract class LitematicaInventoryUtilsMixin {
 
     @Inject(
-        method = "schematicWorldPickBlock",
-        at = @At(
-            value = "INVOKE",
-            target = "Lfi/dy/masa/litematica/util/InventoryUtils;findSlotWithBoxWithItem(Lnet/minecraft/screen/ScreenHandler;Lnet/minecraft/item/ItemStack;Z)I"
-        ),
-        cancellable = true
+            method = "schematicWorldPickBlock",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lfi/dy/masa/litematica/util/InventoryUtils;findSlotWithBoxWithItem(Lnet/minecraft/screen/ScreenHandler;Lnet/minecraft/item/ItemStack;Z)I"
+            ),
+            cancellable = true
     )
     private static void getStack(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci) {
+        Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack start,{}" , Configs.Generic.ENABLE_LSBP.getBooleanValue());
         if (Configs.Generic.ENABLE_LSBP.getBooleanValue()) {
             ClientPlayerEntity player = mc.player;
-            int slot = findSlotWithBoxWithItem(player.currentScreenHandler, stack, false);
+            int slotId = findSlotWithBoxWithItem(player.currentScreenHandler, stack, false);
+            Utils.LOGGER.error("LitematicaInventoryUtilsMixin findSlotWithBoxWithItem slot {}", slotId);
             int maxMoveCount = Configs.Generic.LSBP_COUNT.getIntegerValue();
-            if (slot != -1 && PlayerSlotUtils.getPlayerSlotHaveEmpty(player)) {
-                ItemStack boxStack = player.playerScreenHandler.slots.get(slot).getStack();
+            if (slotId != -1 && PlayerSlotUtils.getPlayerSlotHaveEmpty(player)) {
+                ItemStack boxStack = player.playerScreenHandler.slots.get(slotId).getStack();
                 if (mc.getCurrentServerEntry() == null) {
+                    Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack client start");
                     ServerPlayerEntity serverPlayer = mc.getServer().getPlayerManager().getPlayer(player.getUuid());
-                    PlayerSlotUtils.moveBoxItem(serverPlayer, stack, boxStack, maxMoveCount, slot);
+                    PlayerSlotUtils.moveBoxItem(serverPlayer, stack, boxStack, maxMoveCount, slotId);
                     setPickedItemToHand(stack, mc);
+                    Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack client end");
                     ci.cancel();
+                    return;
                 }
-                MoveItemCountPayload payload = new MoveItemCountPayload();
-                payload.setMaxMoveCount(maxMoveCount);
-                payload.setHasItemBoxSlot(slot);
-                payload.setTargetStack(stack);
-                payload.setBoxStack(boxStack);
-                ClientPlayNetworking.send(payload);
+                Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack server start");
+                LitematicaShulkerBoxPickerPacket packet = LitematicaShulkerBoxPickerPacket.
+                        moveItemRequest(maxMoveCount, slotId, stack, boxStack);
+                LitematicaShulkerBoxPickerHandler.getInstance().
+                        sendPlayPayload(new LitematicaShulkerBoxPickerPacket.Payload(packet));
+                Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack server end");
             }
         }
     }

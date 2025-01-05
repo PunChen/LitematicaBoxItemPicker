@@ -2,25 +2,27 @@ package dev.skydynamic.litematicaboxitempicker.utils;
 
 import dev.skydynamic.litematicaboxitempicker.Utils;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
-
-import static fi.dy.masa.litematica.util.InventoryUtils.setPickedItemToHand;
 
 public class PlayerSlotUtils {
 
     // 检测是否有空余的格子(除去盔甲栏和副手)
     public static boolean getPlayerSlotHaveEmpty(ClientPlayerEntity player) {
         Inventory inventory = player.getInventory();
+        Utils.LOGGER.error("LitematicaInventoryUtilsMixin getPlayerSlotHaveEmpty slot {}", inventory.size());
+        for (int i = 0; i < inventory.size(); i++) {
+            Utils.LOGGER.error("LitematicaInventoryUtilsMixin play inventory slot {} item {}", i,
+                    inventory.getStack(i).getItem().toString());
+        }
         for (int i = 0; i < 36; i++) {
             ItemStack stack = inventory.getStack(i);
             if (stack.isEmpty()) {
@@ -44,74 +46,57 @@ public class PlayerSlotUtils {
     // 给予玩家物品
     public static void givePlayerItems(ItemStack stack, ServerPlayerEntity player) {
         PlayerInventory inventory = player.getInventory();
+        Utils.LOGGER.error("givePlayerItems getBundleItems {}", inventory);
         if (inventory.insertStack(getPlayerEmptySlot(player), stack)) {
             ItemEntity itemEntity = player.dropItem(stack, false);
             if (itemEntity != null) {
                 itemEntity.setDespawnImmediately();
             }
             player.currentScreenHandler.sendContentUpdates();
+            Utils.LOGGER.error("givePlayerItems sendContentUpdates end {}", itemEntity);
+        } else {
+            Utils.LOGGER.error("givePlayerItems fails {}", inventory);
         }
     }
 
     // 将盒子内的物品转移到手上
-    // 将盒子内的物品转移到手上
-    public static void moveBoxItem(ServerPlayerEntity player, ItemStack stack, ItemStack boxStack, int maxMoveCount, int boxSlot) {
-        // 获得潜影盒的物品列表 todo getStoredItems getBundleItems 区别
-        DefaultedList<ItemStack> items = Utils.getBundleItems(boxStack);
+    public static void moveBoxItem(ServerPlayerEntity player, ItemStack stack, ItemStack boxStack, int maxMoveCount, int boxSlotId) {
+        // 获得潜影盒的物品列表
+        DefaultedList<ItemStack> items = Utils.getStoredItemsWithoutOrder(boxStack);
+        Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem getBundleItems {}", items);
         String stackItemId = Registries.ITEM.getId(stack.getItem()).toString();
+        Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem stackItemId {} ", stackItemId);
         for (int i = 0; i < items.size(); ++i) {
             ItemStack oneStackInBox = items.get(i);
             String boxItemId = oneStackInBox.getItem().toString();
             if (boxItemId.equals(stackItemId)) {
+                Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem maxMoveCount {} boxSlotId {}", maxMoveCount, boxSlotId);
                 int itemCount = oneStackInBox.getCount();
                 if (itemCount <= maxMoveCount) {
                     ItemStack itemToGive = oneStackInBox.copy();
                     givePlayerItems(itemToGive, player);
                     items.remove(i);
-                    ItemStack newBox = createShulkerBoxWithItems(items);
-                    player.getInventory().setStack(boxSlot,newBox);
-                    // todo 区别
-//                    player.playerScreenHandler.slots.get(boxSlot).getStack().set(boxSlot,newBox);
+                    ItemStack newBox = createShulkerBoxWithNewItems(boxStack, items);
+                    player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
                 } else {
                     oneStackInBox.setCount(itemCount - maxMoveCount);
                     ItemStack itemToGive = oneStackInBox.copy();
                     itemToGive.setCount(maxMoveCount);
                     givePlayerItems(itemToGive, player);
-                    ItemStack newBox = createShulkerBoxWithItems(items);
-                    player.getInventory().setStack(boxSlot,newBox);
-//                    player.playerScreenHandler.slots.get(boxSlot).getStack().setNbt(boxItemsNbtCompound);
+                    ItemStack newBox = createShulkerBoxWithNewItems(boxStack, items);
+                    player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
                 }
                 return;
             }
         }
     }
 
-    public static ItemStack createShulkerBoxWithItems(DefaultedList<ItemStack> items) {
-        ItemStack itemStack = new ItemStack(RegistryEntry.of(Items.SHULKER_BOX),1);
-//        ItemConvertible value = (RegistryEntry.of(Items.SHULKER_BOX).value());
-//        itemStack.set(DataComponentTypes.CONTAINER, items);
-//        ContainerComponent container = itemStack.getComponents().get(DataComponentTypes.CONTAINER);
-//
-//        itemStack.set(DataComponentTypes.CONTAINER,container);
-//        ComponentMap.builder().addAll().build();
-
-//        if (container != null)
-//        {
-//            Iterator<ItemStack> iter = container.streamNonEmpty().iterator();
-//            container.stream()
-//            DefaultedList<ItemStack> items = DefaultedList.ofSize((int) container.streamNonEmpty().count());
-//
-//            // Using 'container.copyTo(items)' will break Litematica's Material List
-//            while (iter.hasNext())
-//            {
-//                items.add(iter.next());
-//            }
-//
-//            return items;
-//        }
-
-
+    public static ItemStack createShulkerBoxWithNewItems(ItemStack boxStack, DefaultedList<ItemStack> items) {
+        ItemStack itemStack = new ItemStack(RegistryEntry.of(boxStack.getItem()), 1);
+        ContainerComponent containerComponent = ContainerComponent.fromStacks(items);
+        itemStack.set(DataComponentTypes.CONTAINER, containerComponent);
         return itemStack;
     }
+
 
 }

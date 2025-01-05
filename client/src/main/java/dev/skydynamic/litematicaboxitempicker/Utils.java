@@ -2,35 +2,36 @@ package dev.skydynamic.litematicaboxitempicker;
 
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.BundleContentsComponent;
+import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.collection.DefaultedList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
 public class Utils {
-    public static DefaultedList<ItemStack> getBundleItems(ItemStack stackIn)
+    public static final Logger LOGGER = LoggerFactory.getLogger(Reference.MOD_ID);
+
+    public static DefaultedList<ItemStack> getStoredItemsWithoutOrder(ItemStack stackIn)
     {
-        BundleContentsComponent bundleContainer = stackIn.getComponents().getOrDefault(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT);
-
-        if (bundleContainer != null && bundleContainer.equals(BundleContentsComponent.DEFAULT) == false)
+        ContainerComponent container = stackIn.getComponents().get(DataComponentTypes.CONTAINER);
+        if (container != null)
         {
-            int maxSlots = bundleContainer.size();
-            DefaultedList<ItemStack> items = DefaultedList.ofSize(maxSlots);
-            Iterator<ItemStack> iter = bundleContainer.stream().iterator();
-
+            Iterator<ItemStack> iter = container.stream().iterator();
+            DefaultedList<ItemStack> items = DefaultedList.ofSize((int) container.stream().count());
             while (iter.hasNext())
             {
-                ItemStack slot = iter.next();
-
-                if (slot.isEmpty() == false)
-                {
-                    items.add(slot);
+                ItemStack stack = iter.next();
+                if (stack.isEmpty()) {
+                    stack = new ItemStack(Items.AIR);
                 }
+                items.add(stack);
             }
-
             return items;
         }
-
         return DefaultedList.of();
     }
 }

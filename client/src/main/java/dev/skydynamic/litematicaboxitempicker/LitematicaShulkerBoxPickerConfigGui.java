@@ -2,6 +2,7 @@ package dev.skydynamic.litematicaboxitempicker;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
 import fi.dy.masa.malilib.config.IConfigBase;
@@ -92,7 +93,7 @@ public class LitematicaShulkerBoxPickerConfigGui extends GuiConfigsBase{
             LitematicaShulkerBoxPickerConfigGui.tab = this.tab;
 
             this.parent.reCreateListWidget(); // apply the new config width
-            this.parent.getListWidget().resetScrollbarPosition();
+            Objects.requireNonNull(this.parent.getListWidget()).resetScrollbarPosition();
             this.parent.initGui();
         }
     }
