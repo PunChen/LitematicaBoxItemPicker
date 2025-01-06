@@ -9,6 +9,3 @@ pluginManagement {
 }
 
 rootProject.name = "LazyShulkerBox-Plus"
-//include "common"
-include "client"
-include "server"
