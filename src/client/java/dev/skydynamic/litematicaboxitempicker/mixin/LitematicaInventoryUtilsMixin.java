@@ -1,10 +1,12 @@
 package dev.skydynamic.litematicaboxitempicker.mixin;
 
+import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPClientHandler;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
 import fi.dy.masa.litematica.util.InventoryUtils;
+import fi.dy.masa.malilib.network.PacketSplitter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -60,7 +62,9 @@ public abstract class LitematicaInventoryUtilsMixin {
                 }
                 NbtElement stackNbt = stack.encode(Utils.REGISTRY);
                 NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
-                ClientPlayNetworking.send(new LSBPPacket.Payload(LSBPPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt)));
+                LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt);
+                LSBPClientHandler.getInstance().encodeClientData(lsbpPacket); // 机制不清楚
+//                ClientPlayNetworking.send(new LSBPPacket.Payload(lsbpPacket));
             }
         }
     }

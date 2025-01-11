@@ -35,6 +35,7 @@ public class LSBPPacket implements IClientPayloadData {
     public static LSBPPacket moveItemSplitPacketRequest(PacketByteBuf buffer) {
         Utils.LOGGER.error("client moveItemSplitPacketRequest buffer start:{}", buffer.toString());
         LSBPPacket packet = new LSBPPacket();
+        packet.buffer.writeVarInt(LSBPPacketType.PACKET_MOVE_ITEM_DATA.get());
         packet.buffer.writeBytes(buffer);
         return packet;
     }
