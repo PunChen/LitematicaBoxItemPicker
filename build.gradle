@@ -1,9 +1,8 @@
 plugins {
-    id 'fabric-loom' version '1.7.3' apply false
+    id 'fabric-loom' version '1.7.3'
+    id 'maven-publish'
 }
 
-apply plugin: 'fabric-loom'
-apply plugin: 'maven-publish'
 
 String versionSuffix = ''
 // detect github action environment variables
@@ -22,6 +21,17 @@ repositories {
     maven { url 'https://masa.dy.fi/maven' }
     maven { url 'https://maven.terraformersmc.com/releases/' }
     maven { url 'https://cursemaven.com' }
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        "litematic-shulker-box-picker" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
 }
 
 dependencies {
@@ -80,5 +90,23 @@ java {
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}"}
+    }
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            artifactId = project.archives_base_name
+            from components.java
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
     }
 }

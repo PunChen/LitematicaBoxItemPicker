@@ -3,6 +3,7 @@ package dev.skydynamic.litematicaboxitempicker.config;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import dev.skydynamic.litematicaboxitempicker.utils.Reference;
 import fi.dy.masa.malilib.config.ConfigUtils;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigHandler;

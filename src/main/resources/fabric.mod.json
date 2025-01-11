@@ -26,7 +26,11 @@
     ]
   },
   "mixins": [
-    "litematica-shulker-box-picker.mixins.json"
+    "litematica-shulker-box-picker.mixins.json",
+  {
+      "config": "litematic-shulker-box-picker.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",

@@ -1,7 +1,6 @@
 package dev.skydynamic.litematicaboxitempicker.utils;
 
-import dev.skydynamic.litematicaboxitempicker.config.Configs;
-import dev.skydynamic.litematicaboxitempicker.config.Reference;
+import dev.skydynamic.litematicaboxitempicker.registries.ItemStackRegistry;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.item.ItemStack;
@@ -11,17 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
-import java.util.Objects;
 
 public class Utils {
     public static final Logger LOGGER = LoggerFactory.getLogger(Reference.MOD_ID);
 
-    public static void info(String format, Object ...args){
-        if(Configs.Generic.ENABLE_LOGGING.getBooleanValue()) {
-            LOGGER.error(format, args);
-        }
-    }
-
+    public static final ItemStackRegistry REGISTRY = new ItemStackRegistry();
     public static DefaultedList<ItemStack> getStoredItemsWithoutOrder(ItemStack stackIn)
     {
         ContainerComponent container = stackIn.getComponents().get(DataComponentTypes.CONTAINER);

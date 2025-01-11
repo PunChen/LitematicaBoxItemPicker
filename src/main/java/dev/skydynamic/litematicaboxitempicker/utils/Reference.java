@@ -1,4 +1,4 @@
-package dev.skydynamic.litematicaboxitempicker.config;
+package dev.skydynamic.litematicaboxitempicker.utils;
 
 import fi.dy.masa.malilib.util.StringUtils;
 

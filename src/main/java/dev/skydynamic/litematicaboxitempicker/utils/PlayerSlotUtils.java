@@ -1,6 +1,6 @@
 package dev.skydynamic.litematicaboxitempicker.utils;
 
-import net.minecraft.client.network.ClientPlayerEntity;
+
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.entity.ItemEntity;
@@ -17,14 +17,9 @@ public class PlayerSlotUtils {
     public static boolean isPlayerHaveEmptySlot(ServerPlayerEntity player) {
         return player.getInventory().getEmptySlot() != -1;
     }
+
     // 检测是否有空余的格子(除去盔甲栏和副手)
-    public static boolean getPlayerSlotHaveEmpty(ClientPlayerEntity player) {
-        Inventory inventory = player.getInventory();
-        Utils.info("LitematicaInventoryUtilsMixin getPlayerSlotHaveEmpty slot {}", inventory.size());
-        for (int i = 0; i < inventory.size(); i++) {
-            Utils.info("LitematicaInventoryUtilsMixin play inventory slot {} item {}", i,
-                    inventory.getStack(i).getItem().toString());
-        }
+    public static boolean getPlayerSlotHaveEmpty(Inventory inventory) {
         for (int i = 0; i < 36; i++) {
             ItemStack stack = inventory.getStack(i);
             if (stack.isEmpty()) {
@@ -48,16 +43,16 @@ public class PlayerSlotUtils {
     // 给予玩家物品
     public static void givePlayerItems(ItemStack stack, ServerPlayerEntity player) {
         PlayerInventory inventory = player.getInventory();
-        Utils.info("givePlayerItems getBundleItems {}", inventory);
+        Utils.LOGGER.error("givePlayerItems getBundleItems {}", inventory);
         if (inventory.insertStack(getPlayerEmptySlot(player), stack)) {
             ItemEntity itemEntity = player.dropItem(stack, false);
             if (itemEntity != null) {
                 itemEntity.setDespawnImmediately();
             }
             player.currentScreenHandler.sendContentUpdates();
-            Utils.info("givePlayerItems sendContentUpdates end {}", itemEntity);
+            Utils.LOGGER.error("givePlayerItems sendContentUpdates end {}", itemEntity);
         } else {
-            Utils.info("givePlayerItems fails {}", inventory);
+            Utils.LOGGER.error("givePlayerItems fails {}", inventory);
         }
     }
 
@@ -65,14 +60,14 @@ public class PlayerSlotUtils {
     public static void moveBoxItem(ServerPlayerEntity player, ItemStack stack, ItemStack boxStack, int maxMoveCount, int boxSlotId) {
         // 获得潜影盒的物品列表
         DefaultedList<ItemStack> items = Utils.getStoredItemsWithoutOrder(boxStack);
-        Utils.info("LitematicaInventoryUtilsMixin moveBoxItem getBundleItems {}", items);
+        Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem getBundleItems {}", items);
         String stackItemId = Registries.ITEM.getId(stack.getItem()).toString();
-        Utils.info("LitematicaInventoryUtilsMixin moveBoxItem stackItemId {} ", stackItemId);
+        Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem stackItemId {} ", stackItemId);
         for (int i = 0; i < items.size(); ++i) {
             ItemStack oneStackInBox = items.get(i);
             String boxItemId = oneStackInBox.getItem().toString();
             if (boxItemId.equals(stackItemId)) {
-                Utils.info("LitematicaInventoryUtilsMixin moveBoxItem maxMoveCount {} boxSlotId {}", maxMoveCount, boxSlotId);
+                Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem maxMoveCount {} boxSlotId {}", maxMoveCount, boxSlotId);
                 int itemCount = oneStackInBox.getCount();
                 if (itemCount <= maxMoveCount) {
                     ItemStack itemToGive = oneStackInBox.copy();
