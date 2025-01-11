@@ -1,6 +1,6 @@
 package dev.skydynamic.litematicaboxitempicker.mixin;
 
-import dev.skydynamic.litematicaboxitempicker.clientnetwork.LBPSPacket;
+import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
@@ -60,7 +60,7 @@ public abstract class LitematicaInventoryUtilsMixin {
                 }
                 NbtElement stackNbt = stack.encode(Utils.REGISTRY);
                 NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
-                ClientPlayNetworking.send(new LBPSPacket.Payload(LBPSPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt)));
+                ClientPlayNetworking.send(new LSBPPacket.Payload(LSBPPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt)));
             }
         }
     }

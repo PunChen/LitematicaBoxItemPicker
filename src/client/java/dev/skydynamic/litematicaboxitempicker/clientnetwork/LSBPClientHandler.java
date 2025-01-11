@@ -25,21 +25,21 @@ public abstract class LSBPClientHandler<T extends CustomPayload> implements IPlu
 
     private int failures = 0;
     private static final int MAX_FAILURES = 2;
-    private static final LSBPClientHandler<LBPSPacket.Payload> INSTANCE =
+    private static final LSBPClientHandler<LSBPPacket.Payload> INSTANCE =
             new LSBPClientHandler<>() {
                 @Override
-                public void receive(LBPSPacket.Payload payload, ClientPlayNetworking.Context context) {
+                public void receive(LSBPPacket.Payload payload, ClientPlayNetworking.Context context) {
                     LSBPClientHandler.INSTANCE.receivePlayPayload(payload, context);
                 }
             };
 
-    public static LSBPClientHandler<LBPSPacket.Payload> getInstance() {
+    public static LSBPClientHandler<LSBPPacket.Payload> getInstance() {
         return INSTANCE;
     }
 
     @Override
     public Identifier getPayloadChannel() {
-        return LBPSPacket.CHANNEL_ID;
+        return LSBPPacket.CHANNEL_ID;
     }
 
     private boolean payloadRegistered = false;
@@ -47,7 +47,7 @@ public abstract class LSBPClientHandler<T extends CustomPayload> implements IPlu
 
     @Override
     public boolean isPlayRegistered(Identifier channel) {
-        if (channel.equals(LBPSPacket.CHANNEL_ID)) {
+        if (channel.equals(LSBPPacket.CHANNEL_ID)) {
             return this.payloadRegistered;
         }
         return false;
@@ -55,7 +55,7 @@ public abstract class LSBPClientHandler<T extends CustomPayload> implements IPlu
 
     @Override
     public void setPlayRegistered(Identifier channel) {
-        if (channel.equals(LBPSPacket.CHANNEL_ID)) {
+        if (channel.equals(LSBPPacket.CHANNEL_ID)) {
             this.payloadRegistered = true;
         }
     }
@@ -68,8 +68,8 @@ public abstract class LSBPClientHandler<T extends CustomPayload> implements IPlu
     // 收到服务端数据
     @Override
     public void receivePlayPayload(T payload, ClientPlayNetworking.Context ctx) {
-        if (payload.getId().id().equals(LBPSPacket.CHANNEL_ID)) {
-            LBPSPacket packet = ((LBPSPacket.Payload) payload).data;
+        if (payload.getId().id().equals(LSBPPacket.CHANNEL_ID)) {
+            LSBPPacket packet = ((LSBPPacket.Payload) payload).data;
             LSBPPacketType type = LSBPPacketType.getPacketType(packet.getBuffer().readVarInt());
             if (type == null) {
                 Utils.LOGGER.error("LSBPClientHandler receivePlayPayload unexpected packet type null");
@@ -98,13 +98,13 @@ public abstract class LSBPClientHandler<T extends CustomPayload> implements IPlu
     @Override
     public void encodeWithSplitter(PacketByteBuf buffer, ClientPlayNetworkHandler handler) {
         Utils.LOGGER.error("encodeWithSplitter client buffer start: {}", buffer);
-        LSBPClientHandler.INSTANCE.sendPlayPayload(new LBPSPacket.Payload(LBPSPacket.moveItemSplitPacketRequest(buffer)));
+        LSBPClientHandler.INSTANCE.sendPlayPayload(new LSBPPacket.Payload(LSBPPacket.moveItemSplitPacketRequest(buffer)));
         Utils.LOGGER.error("encodeWithSplitter client buffer end: {}", buffer);
     }
 
     @Override
     public <P extends IClientPayloadData> void encodeClientData(P data) {
-        LBPSPacket packet = (LBPSPacket) data;
+        LSBPPacket packet = (LSBPPacket) data;
         PacketByteBuf packetByteBuf = packet.getBuffer();
         int ind = packetByteBuf.readVarInt();
         LSBPPacketType type = LSBPPacketType.getPacketType(ind);
@@ -116,7 +116,7 @@ public abstract class LSBPClientHandler<T extends CustomPayload> implements IPlu
             Utils.LOGGER.error("encodeClientData client start packet:{}", packet);
             PacketSplitter.send(LSBPClientHandler.INSTANCE, packetByteBuf, MinecraftClient.getInstance().getNetworkHandler());
             Utils.LOGGER.error("encodeClientData client end packet:{}", packet);
-        } else if (!LSBPClientHandler.INSTANCE.sendPlayPayload(new LBPSPacket.Payload(packet))) {
+        } else if (!LSBPClientHandler.INSTANCE.sendPlayPayload(new LSBPPacket.Payload(packet))) {
             if (this.failures > MAX_FAILURES) {
                 Utils.LOGGER.error("LSBPClientHandler encodeClientData(): encountered [{}] sendPayload failures, cancelling any join attempt(s)", MAX_FAILURES);
                 this.serverRegistered = false;

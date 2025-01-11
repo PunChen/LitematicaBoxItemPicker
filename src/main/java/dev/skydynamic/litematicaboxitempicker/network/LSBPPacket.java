@@ -10,20 +10,20 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-public class LBPSPacket implements IServerPayloadData {
+public class LSBPPacket implements IServerPayloadData {
 
     public static final Identifier CHANNEL_ID = Identifier.of("lsbp", "move_count_item");
     public static final int PROTOCOL_VERSION = 1;
     private PacketByteBuf buffer;
 
 
-    private LBPSPacket() {
+    private LSBPPacket() {
         this.clearPacket();
     }
 
-    public static LBPSPacket moveItemRequest(int maxMoveCount, int hasItemBoxSlotId,
+    public static LSBPPacket moveItemRequest(int maxMoveCount, int hasItemBoxSlotId,
                                              NbtElement targetStack, NbtElement boxStack) {
-        LBPSPacket packet = new LBPSPacket();
+        LSBPPacket packet = new LSBPPacket();
         packet.buffer.writeVarInt(LSBPPacketType.PACKET_MOVE_ITEM_START.get());
         packet.buffer.writeVarInt(maxMoveCount);
         packet.buffer.writeVarInt(hasItemBoxSlotId);
@@ -32,28 +32,28 @@ public class LBPSPacket implements IServerPayloadData {
         return packet;
     }
 
-    public static LBPSPacket moveItemSplitPacketRequest(PacketByteBuf buffer) {
-        LBPSPacket packet = new LBPSPacket();
+    public static LSBPPacket moveItemSplitPacketRequest(PacketByteBuf buffer) {
+        LSBPPacket packet = new LSBPPacket();
         packet.buffer.writeBytes(buffer);
         return packet;
     }
 
-    public static LBPSPacket moveItemResponseFailure() {
-        LBPSPacket packet = new LBPSPacket();
+    public static LSBPPacket moveItemResponseFailure() {
+        LSBPPacket packet = new LSBPPacket();
         packet.buffer.writeVarInt(LSBPPacketType.PACKET_MOVE_ITEM_FAILURE.get());
         return packet;
     }
 
-    public static LBPSPacket moveItemResponseSuccess(NbtElement targetStack) {
-        LBPSPacket packet = new LBPSPacket();
+    public static LSBPPacket moveItemResponseSuccess(NbtElement targetStack) {
+        LSBPPacket packet = new LSBPPacket();
         packet.buffer.writeVarInt(LSBPPacketType.PACKET_MOVE_ITEM_SUCCESS.get());
         packet.buffer.writeNbt(targetStack);
         return packet;
     }
 
-    public static LBPSPacket fromPacket(PacketByteBuf input) {
+    public static LSBPPacket fromPacket(PacketByteBuf input) {
         Utils.LOGGER.info("LBPSPacket#fromPacket server: input:{}", input);
-        LBPSPacket packet = new LBPSPacket();
+        LSBPPacket packet = new LSBPPacket();
         packet.buffer.writeBytes(input);
         return packet;
     }
@@ -111,12 +111,12 @@ public class LBPSPacket implements IServerPayloadData {
 
 
     public static class Payload implements CustomPayload {
-        public static final Id<Payload> ID = new Id<>(LBPSPacket.CHANNEL_ID);
+        public static final Id<Payload> ID = new Id<>(LSBPPacket.CHANNEL_ID);
         public static final PacketCodec<PacketByteBuf, Payload> CODEC =
                 CustomPayload.codecOf(Payload::write, Payload::new);
-        public final LBPSPacket data;
+        public final LSBPPacket data;
 
-        public Payload(LBPSPacket data) {
+        public Payload(LSBPPacket data) {
             this.data = data;
         }
 
