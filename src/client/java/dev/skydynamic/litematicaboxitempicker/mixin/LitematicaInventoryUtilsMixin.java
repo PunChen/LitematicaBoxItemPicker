@@ -63,8 +63,8 @@ public abstract class LitematicaInventoryUtilsMixin {
                 NbtElement stackNbt = stack.encode(Utils.REGISTRY);
                 NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
                 LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt);
-                LSBPClientHandler.getInstance().encodeClientData(lsbpPacket); // 机制不清楚
-//                ClientPlayNetworking.send(new LSBPPacket.Payload(lsbpPacket));
+//                LSBPClientHandler.getInstance().encodeClientData(lsbpPacket);
+                ClientPlayNetworking.send(new LSBPPacket.Payload(lsbpPacket));
             }
         }
     }
