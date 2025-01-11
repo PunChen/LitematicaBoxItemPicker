@@ -12,13 +12,13 @@ public class LitematicaShulkerBoxPickerServer implements DedicatedServerModIniti
             LSBPServerHandler.getInstance();
     @Override
     public void onInitializeServer() {
-        Utils.LOGGER.error("LitematicaShulkerBoxPickerClient onInitializeServer start");
+        Utils.LOGGER.warn("LitematicaShulkerBoxPickerClient onInitializeServer start");
 
         HANDLER.registerPlayPayload(LBPSPacket.Payload.ID,
                 LBPSPacket.Payload.CODEC,
                 IPluginServerPlayHandler.BOTH_SERVER);
         HANDLER.registerPlayReceiver(LBPSPacket.Payload.ID, HANDLER::receivePlayPayload);
-        Utils.LOGGER.error("LitematicaShulkerBoxPickerClient onInitializeServer end");
+        Utils.LOGGER.warn("LitematicaShulkerBoxPickerClient onInitializeServer end");
 
     }
 

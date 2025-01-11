@@ -10,8 +10,8 @@ public class LitematicaShulkerBoxPickerClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        Utils.LOGGER.error("LitematicaShulkerBoxPickerClient onInitializeClient start");
+        Utils.LOGGER.warn("LitematicaShulkerBoxPickerClient onInitializeClient start");
         InitializationHandler.getInstance().registerInitializationHandler(new InitHandler());
-        Utils.LOGGER.error("LitematicaShulkerBoxPickerClient onInitializeClient end");
+        Utils.LOGGER.warn("LitematicaShulkerBoxPickerClient onInitializeClient end");
     }
 }

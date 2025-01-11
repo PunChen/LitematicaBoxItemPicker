@@ -33,7 +33,6 @@ public class LBPSPacket implements IServerPayloadData {
     }
 
     public static LBPSPacket moveItemSplitPacketRequest(PacketByteBuf buffer) {
-        Utils.LOGGER.error("client moveItemSplitPacketRequest buffer start:{}", buffer.toString());
         LBPSPacket packet = new LBPSPacket();
         packet.buffer.writeBytes(buffer);
         return packet;
@@ -53,7 +52,7 @@ public class LBPSPacket implements IServerPayloadData {
     }
 
     public static LBPSPacket fromPacket(PacketByteBuf input) {
-        Utils.LOGGER.error("LBPSPacket#fromPacket server: input:{}", input);
+        Utils.LOGGER.info("LBPSPacket#fromPacket server: input:{}", input);
         LBPSPacket packet = new LBPSPacket();
         packet.buffer.writeBytes(input);
         return packet;

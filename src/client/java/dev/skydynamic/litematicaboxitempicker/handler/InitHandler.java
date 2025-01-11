@@ -24,7 +24,7 @@ public class InitHandler implements IInitializationHandler {
 
     @Override
     public void registerModHandlers() {
-        Utils.LOGGER.error("LitematicaShulkerBoxPickerHandler registerModHandlers start");
+        Utils.LOGGER.warn("LitematicaShulkerBoxPickerHandler registerModHandlers start");
         ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, new Configs());
         InputEventHandler.getKeybindManager().registerKeybindProvider(LitematicaShulkerBoxPickerInputHandler.getInstance());
 
@@ -34,7 +34,7 @@ public class InitHandler implements IInitializationHandler {
         ClientPlayHandler.getInstance().registerClientPlayHandler(HANDLER);
         HANDLER.registerPlayPayload(LBPSPacket.Payload.ID,
                 LBPSPacket.Payload.CODEC, IPluginClientPlayHandler.BOTH_CLIENT);//客户端收发的
-        Utils.LOGGER.error("LitematicaShulkerBoxPickerHandler registerModHandlers end");
+        Utils.LOGGER.warn("LitematicaShulkerBoxPickerHandler registerModHandlers end");
     }
 
     private static class KeyCallbackHotkeys implements IHotkeyCallback {

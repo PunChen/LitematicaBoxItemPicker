@@ -38,12 +38,9 @@ public abstract class LitematicaInventoryUtilsMixin {
             cancellable = true
     )
     private static void getStack(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci) {
-        Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack start, stack {} position:{}, {}",
-                Configs.Generic.ENABLE_LSBP.getBooleanValue(), stack, pos);
         if (Configs.Generic.ENABLE_LSBP.getBooleanValue()) {
             ClientPlayerEntity player = mc.player;
             int slotId = findSlotWithBoxWithItem(player.currentScreenHandler, stack, false);
-            Utils.LOGGER.error("LitematicaInventoryUtilsMixin findSlotWithBoxWithItem slot {}", slotId);
             int maxMoveCount = Configs.Generic.LSBP_COUNT.getIntegerValue();
             if (slotId != -1 && PlayerSlotUtils.getPlayerSlotHaveEmpty(player.getInventory())) {
                 ItemStack boxStack = player.playerScreenHandler.slots.get(slotId).getStack();
@@ -53,21 +50,17 @@ public abstract class LitematicaInventoryUtilsMixin {
                     return;
                 }
                 if (mc.getCurrentServerEntry() == null) {
-                    Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack client start");
+                    Utils.LOGGER.warn("LitematicaInventoryUtilsMixin getStack client start");
                     ServerPlayerEntity serverPlayer = mc.getServer().getPlayerManager().getPlayer(player.getUuid());
                     PlayerSlotUtils.moveBoxItem(serverPlayer, stack, boxStack, maxMoveCount, slotId);
                     setPickedItemToHand(stack, mc);
-                    Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack client end");
+                    Utils.LOGGER.warn("LitematicaInventoryUtilsMixin getStack client end");
                     ci.cancel();
                     return;
                 }
-                Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack server start");
                 NbtElement stackNbt = stack.encode(Utils.REGISTRY);
                 NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
-                Utils.LOGGER.error("getStack send moveItemRequest {},{},{},{},{}", maxMoveCount, slotId, stack, boxStack,
-                        boxStack.encode(Utils.REGISTRY));
                 ClientPlayNetworking.send(new LBPSPacket.Payload(LBPSPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt)));
-                Utils.LOGGER.error("LitematicaInventoryUtilsMixin getStack server end");
             }
         }
     }

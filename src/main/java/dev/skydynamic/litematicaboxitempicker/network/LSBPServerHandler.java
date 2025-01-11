@@ -82,7 +82,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
     public void receivePlayPayload(T payload, ServerPlayNetworking.Context ctx) {
         if (payload.getId().id().equals(LBPSPacket.CHANNEL_ID)) {
             LBPSPacket packet = ((LBPSPacket.Payload) payload).data;
-            Utils.LOGGER.error("receivePlayPayload packet:{}", packet);
+            Utils.LOGGER.info("receivePlayPayload packet:{}", packet);
             LSBPServerHandler.INSTANCE.decodeServerData(LBPSPacket.CHANNEL_ID, ctx.player(),
                     ((LBPSPacket.Payload) payload).data);
         }
@@ -105,7 +105,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
         Optional<ItemStack> targetStackOpt = ItemStack.fromNbt(Utils.REGISTRY, buffer.readNbt());
         Optional<ItemStack> boxStackOpt = ItemStack.fromNbt(Utils.REGISTRY, buffer.readNbt());
         if (targetStackOpt.isEmpty() || boxStackOpt.isEmpty()) {
-            Utils.LOGGER.error("LSBPServerHandler receivePlayPayload stackOpt or boxStackOpt empty,{},{}",
+            Utils.LOGGER.warn("LSBPServerHandler receivePlayPayload stackOpt or boxStackOpt empty,{},{}",
                     targetStackOpt, boxStackOpt);
             LBPSPacket packet = LBPSPacket.moveItemResponseFailure();
             ServerPlayNetworking.send(serverPlayer,new LBPSPacket.Payload(packet));
@@ -114,15 +114,13 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
         ItemStack targetStack = targetStackOpt.get();
         ItemStack boxStack = boxStackOpt.get();
         if (!PlayerSlotUtils.isPlayerHaveEmptySlot(serverPlayer)) {
-            Utils.LOGGER.error("LSBPServerHandler receivePlayPayload player don't have empty slot");
+            Utils.LOGGER.warn("LSBPServerHandler receivePlayPayload player don't have empty slot");
             LBPSPacket packet = LBPSPacket.moveItemResponseFailure();
             ServerPlayNetworking.send(serverPlayer,new LBPSPacket.Payload(packet));
             return;
         }
-        Utils.LOGGER.error("receivePlayPayload from client:{},{},{},{}", maxCount, hasItemBoxSlotId, targetStack, boxStack);
         PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, boxStack, maxCount, hasItemBoxSlotId);
         LBPSPacket packet = LBPSPacket.moveItemResponseSuccess(targetStack.encode(Utils.REGISTRY));
         ServerPlayNetworking.send(serverPlayer,new LBPSPacket.Payload(packet));
-        Utils.LOGGER.error("LSBPServerHandler receivePlayPayload done");
     }
 }

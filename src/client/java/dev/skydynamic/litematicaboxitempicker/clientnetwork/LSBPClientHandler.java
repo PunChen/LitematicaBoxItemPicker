@@ -80,7 +80,7 @@ public abstract class LSBPClientHandler<T extends CustomPayload> implements IPlu
                     NbtElement stack = packet.getBuffer().readNbt();
                     Optional<ItemStack> targetStack = ItemStack.fromNbt(Utils.REGISTRY, stack);
                     if (targetStack.isEmpty()) {
-                        Utils.LOGGER.error("LSBPClientHandler receivePlayPayload empty stack from server");
+                        Utils.LOGGER.warn("LSBPClientHandler receivePlayPayload empty stack from server");
                         return;
                     }
                     setPickedItemToHand(targetStack.get(), ctx.client());

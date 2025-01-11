@@ -43,16 +43,14 @@ public class PlayerSlotUtils {
     // 给予玩家物品
     public static void givePlayerItems(ItemStack stack, ServerPlayerEntity player) {
         PlayerInventory inventory = player.getInventory();
-        Utils.LOGGER.error("givePlayerItems getBundleItems {}", inventory);
         if (inventory.insertStack(getPlayerEmptySlot(player), stack)) {
             ItemEntity itemEntity = player.dropItem(stack, false);
             if (itemEntity != null) {
                 itemEntity.setDespawnImmediately();
             }
             player.currentScreenHandler.sendContentUpdates();
-            Utils.LOGGER.error("givePlayerItems sendContentUpdates end {}", itemEntity);
         } else {
-            Utils.LOGGER.error("givePlayerItems fails {}", inventory);
+            Utils.LOGGER.warn("givePlayerItems fails {}", stack);
         }
     }
 
@@ -60,14 +58,11 @@ public class PlayerSlotUtils {
     public static void moveBoxItem(ServerPlayerEntity player, ItemStack stack, ItemStack boxStack, int maxMoveCount, int boxSlotId) {
         // 获得潜影盒的物品列表
         DefaultedList<ItemStack> items = Utils.getStoredItemsWithoutOrder(boxStack);
-        Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem getBundleItems {}", items);
         String stackItemId = Registries.ITEM.getId(stack.getItem()).toString();
-        Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem stackItemId {} ", stackItemId);
         for (int i = 0; i < items.size(); ++i) {
             ItemStack oneStackInBox = items.get(i);
             String boxItemId = oneStackInBox.getItem().toString();
             if (boxItemId.equals(stackItemId)) {
-                Utils.LOGGER.error("LitematicaInventoryUtilsMixin moveBoxItem maxMoveCount {} boxSlotId {}", maxMoveCount, boxSlotId);
                 int itemCount = oneStackInBox.getCount();
                 if (itemCount <= maxMoveCount) {
                     ItemStack itemToGive = oneStackInBox.copy();
