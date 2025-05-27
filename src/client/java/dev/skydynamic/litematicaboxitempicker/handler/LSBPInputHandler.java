@@ -9,15 +9,15 @@ import fi.dy.masa.malilib.hotkeys.IKeybindProvider;
 
 import java.util.List;
 
-public class LitematicaShulkerBoxPickerInputHandler implements IKeybindProvider{
+public class LSBPInputHandler implements IKeybindProvider{
 
-    private static final LitematicaShulkerBoxPickerInputHandler INSTANCE = new LitematicaShulkerBoxPickerInputHandler();
+    private static final LSBPInputHandler INSTANCE = new LSBPInputHandler();
 
-    private LitematicaShulkerBoxPickerInputHandler() {
+    private LSBPInputHandler() {
         super();
     }
 
-    public static LitematicaShulkerBoxPickerInputHandler getInstance() {
+    public static LSBPInputHandler getInstance() {
         return INSTANCE;
     }
 

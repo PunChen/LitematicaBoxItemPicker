@@ -1,12 +1,10 @@
 package dev.skydynamic.litematicaboxitempicker.mixin;
 
-import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPClientHandler;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
 import fi.dy.masa.litematica.util.InventoryUtils;
-import fi.dy.masa.malilib.network.PacketSplitter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -29,7 +27,7 @@ import static fi.dy.masa.litematica.util.InventoryUtils.setPickedItemToHand;
 
 @Environment(EnvType.CLIENT)
 @Mixin(InventoryUtils.class)
-public abstract class LitematicaInventoryUtilsMixin {
+public abstract class LSBPInventoryUtilsMixin {
 
     @Inject(
             method = "schematicWorldPickBlock",

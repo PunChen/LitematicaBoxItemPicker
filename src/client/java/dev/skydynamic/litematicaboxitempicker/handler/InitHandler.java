@@ -2,7 +2,7 @@ package dev.skydynamic.litematicaboxitempicker.handler;
 
 import dev.skydynamic.litematicaboxitempicker.utils.Reference;
 import dev.skydynamic.litematicaboxitempicker.config.Configs;
-import dev.skydynamic.litematicaboxitempicker.config.LitematicaShulkerBoxPickerConfigGui;
+import dev.skydynamic.litematicaboxitempicker.config.LSBPConfigGui;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPClientHandler;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
@@ -26,11 +26,10 @@ public class InitHandler implements IInitializationHandler {
     public void registerModHandlers() {
         Utils.LOGGER.warn("LitematicaShulkerBoxPickerHandler registerModHandlers start");
         ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, new Configs());
-        InputEventHandler.getKeybindManager().registerKeybindProvider(LitematicaShulkerBoxPickerInputHandler.getInstance());
+        InputEventHandler.getKeybindManager().registerKeybindProvider(LSBPInputHandler.getInstance());
 
         Configs.Hotkeys.OPEN_GUI_MAIN_MENU.getKeybind().setCallback(new KeyCallbackHotkeys());
         Configs.Hotkeys.ENABLE_LSBP.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(Configs.Generic.ENABLE_LSBP));
-
         ClientPlayHandler.getInstance().registerClientPlayHandler(HANDLER);
         HANDLER.registerPlayPayload(LSBPPacket.Payload.ID,
                 LSBPPacket.Payload.CODEC, IPluginClientPlayHandler.BOTH_CLIENT);//客户端收发的
@@ -41,7 +40,7 @@ public class InitHandler implements IInitializationHandler {
         @Override
         public boolean onKeyAction(KeyAction action, IKeybind key) {
             if (key == Configs.Hotkeys.OPEN_GUI_MAIN_MENU.getKeybind()) {
-                GuiBase.openGui(new LitematicaShulkerBoxPickerConfigGui());
+                GuiBase.openGui(new LSBPConfigGui());
             }
             return true;
         }

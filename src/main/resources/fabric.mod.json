@@ -16,10 +16,10 @@
   "environment": "*",
   "entrypoints": {
     "server": [
-      "dev.skydynamic.litematicaboxitempicker.LitematicaShulkerBoxPickerServer"
+      "dev.skydynamic.litematicaboxitempicker.LSBPServer"
     ],
     "client": [
-      "dev.skydynamic.litematicaboxitempicker.LitematicaShulkerBoxPickerClient"
+      "dev.skydynamic.litematicaboxitempicker.LSBPClient"
     ],
     "modmenu": [
       "dev.skydynamic.litematicaboxitempicker.compat.modmenu.ModMenuImpl"
