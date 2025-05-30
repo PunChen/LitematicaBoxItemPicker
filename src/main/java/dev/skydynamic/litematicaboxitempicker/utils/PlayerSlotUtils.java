@@ -1,18 +1,25 @@
 package dev.skydynamic.litematicaboxitempicker.utils;
 
 
+import com.google.common.collect.Lists;
+import fi.dy.masa.litematica.util.InventoryUtils;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemStackSet;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.Iterator;
+
+import static fi.dy.masa.litematica.util.InventoryUtils.findSlotWithBoxWithItem;
 
 public class PlayerSlotUtils {
 
@@ -46,14 +53,15 @@ public class PlayerSlotUtils {
         }
     }
 
-    // 将盒子内的物品转移到手上
-    // 有空槽位-将原有潜影盒中的物品，取出来，放到空槽位，然后将物品放到主手 -- 会占用一个空槽位
-    // 没有空槽位-并且开启强制替换，将原有潜影盒中的物品，取出来，和主手的物品进行替换 --不占用空槽位
+    // 有空槽位-将原有潜影盒中的物品，取出来，放到空槽位 -- 会占用一个空槽位，如果整组取出来，则潜影盒多出一格空槽位
+    // 没有空槽位-并且开启强制替换，尝试找最后一个非潜影盒的物品位，将原有潜影盒中的物品，取出来
+    // 潜影盒取出物品后，留下空槽位，则将找到的非空物品槽位放到潜影盒，然后将取出的物品放到背包，如果没有多于槽位则提示失败，
+    // 如果开启全背包检索空槽位，则可以将背包物品转移到其他潜影盒
     public static void moveBoxItem(ServerPlayerEntity player, ItemStack stack, ItemStack boxStack, int maxMoveCount,
-                                   int boxSlotId, boolean replaceWhenNoSlot) {
+                                   int boxSlotId, boolean noSlotCollectIntoBox) {
         int emptySlotId = getPlayerEmptySlot(player);
         // 没有空槽位-并且没有开启满替换
-        if (emptySlotId == -1 && !replaceWhenNoSlot) {
+        if (emptySlotId == -1 && !noSlotCollectIntoBox) {
             return;
         }
         // 有空槽位或者开启满替换
@@ -73,62 +81,98 @@ public class PlayerSlotUtils {
                 itemToGive = oneStackInBox.copy();
                 if (emptySlotId != -1) {
                     // 将潜影盒取出的 物品放到玩家空槽位（在下一次玩家右键时，投影的轻松放置会自动取物）
-                    givePlayerItems(itemToGive, player, emptySlotId);// todo 是否销毁 itemToGive
+                    givePlayerItems(itemToGive, player, emptySlotId);
                     items.remove(ind);
                 } else {// 没有空槽，但是开启满替换,将玩家主手上的物品，放到潜影盒，将给玩家的物品放到主手
                     ItemStack mainHandStack = player.getMainHandStack();
                     int mainHandSlot = player.getInventory().selectedSlot;
                     // 将潜影盒取出的 物品放到玩家主手
+                    player.getInventory().setStack(mainHandSlot, ItemStack.EMPTY);// 清空主手物品
                     givePlayerItems(itemToGive, player, mainHandSlot);
-                    items.set(ind, mainHandStack);// 将主手的物品放到潜影盒中
+                    items.set(ind, mainHandStack.copy());// 将主手的物品放到潜影盒中
                 }
-                // 不用给予玩家新的潜影盒，因为潜影盒中的物品已经更新
-                // 给予玩家新的潜影盒
-//                ItemStack newBox = createShulkerBoxWithNewItems(boxStack, items);
-//                player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
-//                // 丢弃原来的潜影盒
-//                ItemEntity itemEntity = player.dropItem(boxStack, false);
-//                if (itemEntity != null) {
-//                    itemEntity.setDespawnImmediately();
-//                }
+                // 潜影盒中的物品已经更新，给予玩家新的潜影盒
+                ItemStack newBox = Utils.createShulkerBoxWithNewItems(boxStack, items);
+                player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
             } else { // 物品足够，潜影盒不增加空槽位
                 oneStackInBox.setCount(itemCount - maxMoveCount);// 更新潜影盒中的物品数量
                 itemToGive = oneStackInBox.copy();
                 itemToGive.setCount(maxMoveCount);
-
                 if (emptySlotId != -1) {// 有空槽位，放到空槽位，下次投影自己替换主手
+                    ItemStack newBox = Utils.createShulkerBoxWithNewItems(boxStack, items);
+                    player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
                     givePlayerItems(itemToGive, player, emptySlotId);
-                } else { // 没有空槽位，开启满替换,
-                    // todo
-                    Utils.LOGGER.error("no empty slot, can not fetch {}", stackItemId);
+                } else { // 没有空槽位，开启物品回收
+                    // 开启：没有空槽位时，回收物品到潜影盒
+                    // 首先回收到当前潜影盒，如果没空位置，找到第一个装有该物品但是合起来不超过一组的潜影盒，或者第一个带有空槽位的潜影盒
+                    // 放置物品的潜影盒
+                    int toCollectSlotId = getFirstNoContainer(player);
+                    if (toCollectSlotId == -1) {
+                        Utils.LOGGER.warn("moveBoxItem not found item inventory to replace into box for: {}", itemToGive);
+                        return;
+                    }
+                    ItemStack toCollectItem = player.getInventory().getStack(toCollectSlotId);
+                    boolean success = tryCollectIntoBox(player, toCollectItem);
+                    if (!success) {
+                        Utils.LOGGER.warn("moveBoxItem unable to collect into box for: {}", toCollectItem);
+                        return;
+                    }
+                    // 将潜影盒中的物品放到回收的空槽位，tryCollectIntoBox已经将新的潜影盒给予玩家
+                    givePlayerItems(itemToGive, player, toCollectSlotId);
                 }
-//                ItemStack newBox = createShulkerBoxWithNewItems(boxStack, items);
-//                player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
-            }
 
-//                if (itemCount <= maxMoveCount) {
-//                    ItemStack itemToGive = oneStackInBox.copy();
-//                    givePlayerItems(itemToGive, player);
-//                    iterator.remove();
-//                    ItemStack newBox = createShulkerBoxWithNewItems(boxStack, items);
-//                    player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
-//                } else {
-//                    oneStackInBox.setCount(itemCount - maxMoveCount);
-//                    ItemStack itemToGive = oneStackInBox.copy();
-//                    itemToGive.setCount(maxMoveCount);
-//                    givePlayerItems(itemToGive, player);
-//                    ItemStack newBox = createShulkerBoxWithNewItems(boxStack, items);
-//                    player.playerScreenHandler.slots.get(boxSlotId).setStack(newBox);
-//                }
+            }
             break;
         }
     }
 
-    public static ItemStack createShulkerBoxWithNewItems(ItemStack boxStack, DefaultedList<ItemStack> items) {
-        ItemStack itemStack = new ItemStack(RegistryEntry.of(boxStack.getItem()), 1);
-        ContainerComponent containerComponent = ContainerComponent.fromStacks(items);
-        itemStack.set(DataComponentTypes.CONTAINER, containerComponent);
-        return itemStack;
+    public static int getFirstNoContainer(ServerPlayerEntity player) {
+        for (int ind = 0; ind < player.getInventory().main.size(); ++ind) {
+            ItemStack oneStack = player.getInventory().getStack(ind);
+            ContainerComponent component = oneStack.getComponents().get(DataComponentTypes.CONTAINER);
+            if (component == null) {
+                return ind;
+            }
+        }
+        return -1;
+    }
+
+
+    private static boolean tryCollectIntoBox(ServerPlayerEntity player, ItemStack toCollect) {
+        int slotId = findSlotWithBoxWithItem(player.currentScreenHandler, toCollect, false);
+        if (slotId != -1) { // 找到带有该物品的潜影盒
+            ItemStack boxStack = player.getInventory().getStack(slotId);
+            ItemStack newBoxStack = Utils.addItemIntoBox(boxStack, toCollect);
+            if (newBoxStack != null) {// 放入成功
+                player.playerScreenHandler.slots.get(slotId).setStack(newBoxStack);
+                return true;
+            }
+        } // 放入失败，对所有的潜影盒便利，尝试放入
+        for (int ind = 0; ind < player.getInventory().main.size(); ++ind) {
+            ItemStack boxStack = player.getInventory().getStack(ind);
+            if (!Utils.isItShulkerBox(boxStack)) {
+                continue;
+            }
+            ItemStack newBoxStack = Utils.addItemIntoBox(boxStack, toCollect);
+            if (newBoxStack != null) {// 放入成功
+                player.playerScreenHandler.slots.get(slotId).setStack(newBoxStack);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+
+        ItemStack boxStack = new ItemStack(Items.SHULKER_BOX.asItem(), 1);
+        ItemStack itemStack = new ItemStack(Items.GLASS, 20);
+        ItemStack toAddStack = new ItemStack(Items.BLUE_CONCRETE, 20);
+        ContainerComponent containerComponent = ContainerComponent.fromStacks(Lists.newArrayList(itemStack));
+        boxStack.set(DataComponentTypes.CONTAINER, containerComponent);
+        ItemStack newBoxStack = Utils.addItemIntoBox(boxStack, toAddStack);
+
+        System.out.println(boxStack);
+        System.out.println(newBoxStack);
     }
 
 

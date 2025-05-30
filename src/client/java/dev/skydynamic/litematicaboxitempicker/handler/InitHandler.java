@@ -1,7 +1,7 @@
 package dev.skydynamic.litematicaboxitempicker.handler;
 
 import dev.skydynamic.litematicaboxitempicker.utils.Reference;
-import dev.skydynamic.litematicaboxitempicker.config.Configs;
+import dev.skydynamic.litematicaboxitempicker.utils.Configs;
 import dev.skydynamic.litematicaboxitempicker.config.LSBPConfigGui;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPClientHandler;

@@ -1,9 +1,9 @@
 package dev.skydynamic.litematicaboxitempicker.network;
 
 import dev.skydynamic.litematicaboxitempicker.enumration.LSBPPacketType;
+import dev.skydynamic.litematicaboxitempicker.utils.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
-import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.servux.Servux;
 import fi.dy.masa.servux.dataproviders.LitematicsDataProvider;
 import fi.dy.masa.servux.network.IPluginServerPlayHandler;
@@ -92,6 +92,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
                     ((LSBPPacket.Payload) payload).data);
         }
     }
+
     private final Map<UUID, Long> readingSessionKeys = new HashMap<>();
 
     @Override
@@ -110,20 +111,15 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
         if (type == LSBPPacketType.PACKET_MOVE_ITEM_DATA) {// 分包
             UUID uuid = serverPlayer.getUuid();
             long readingSessionKey;
-            if (!this.readingSessionKeys.containsKey(uuid))
-            {
+            if (!this.readingSessionKeys.containsKey(uuid)) {
                 readingSessionKey = Random.create(Util.getMeasuringTimeMs()).nextLong();
                 this.readingSessionKeys.put(uuid, readingSessionKey);
-            }
-            else
-            {
+            } else {
                 readingSessionKey = this.readingSessionKeys.get(uuid);
             }
             PacketByteBuf fullPacket = PacketSplitter.receive(this, readingSessionKey, packet.getBuffer());
-            if (fullPacket != null)
-            {
-                try
-                {
+            if (fullPacket != null) {
+                try {
                     // 分包
                     // type_data [ size [ type_start [ buffer ]  [ buffer ] ] ]
                     /*
@@ -149,9 +145,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
                     Utils.LOGGER.warn("LSBPServerHandler decodeServerData with data:{}", fullPacket);
 
                     dealWithMoveItemRequest(serverPlayer, fullPacket);
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     Servux.logger.error("ServuxLitematicaHandler#decodeServerData(): Litematic Data: error reading fullBuffer [{}]", e.getLocalizedMessage());
                 }
             }
@@ -168,7 +162,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
             Utils.LOGGER.warn("LSBPServerHandler receivePlayPayload stackOpt or boxStackOpt empty,{},{}",
                     targetStackOpt, boxStackOpt);
             LSBPPacket packet = LSBPPacket.moveItemResponseFailure();
-            ServerPlayNetworking.send(serverPlayer,new LSBPPacket.Payload(packet));
+            ServerPlayNetworking.send(serverPlayer, new LSBPPacket.Payload(packet));
             return;
         }
         ItemStack targetStack = targetStackOpt.get();
@@ -176,11 +170,12 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
         if (!PlayerSlotUtils.isPlayerHaveEmptySlot(serverPlayer)) {
             Utils.LOGGER.warn("LSBPServerHandler receivePlayPayload player don't have empty slot");
             LSBPPacket packet = LSBPPacket.moveItemResponseFailure();
-            ServerPlayNetworking.send(serverPlayer,new LSBPPacket.Payload(packet));
+            ServerPlayNetworking.send(serverPlayer, new LSBPPacket.Payload(packet));
             return;
         }
-        PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, boxStack, maxCount, hasItemBoxSlotId, false);
+        boolean noSlotCollectIntoBox = Configs.Generic.ENABLE_NO_SLOT_COLLECT_INTO_BOX.getBooleanValue();
+        PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, boxStack, maxCount, hasItemBoxSlotId, noSlotCollectIntoBox);
         LSBPPacket packet = LSBPPacket.moveItemResponseSuccess(targetStack.encode(Utils.REGISTRY));
-        ServerPlayNetworking.send(serverPlayer,new LSBPPacket.Payload(packet));
+        ServerPlayNetworking.send(serverPlayer, new LSBPPacket.Payload(packet));
     }
 }
