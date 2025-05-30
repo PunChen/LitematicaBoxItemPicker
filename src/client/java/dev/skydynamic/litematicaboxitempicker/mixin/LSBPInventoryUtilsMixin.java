@@ -22,6 +22,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Objects;
+
 import static fi.dy.masa.litematica.util.InventoryUtils.findSlotWithBoxWithItem;
 import static fi.dy.masa.litematica.util.InventoryUtils.setPickedItemToHand;
 
@@ -38,32 +40,62 @@ public abstract class LSBPInventoryUtilsMixin {
             cancellable = true
     )
     private static void getStack(ItemStack stack, BlockPos pos, World schematicWorld, MinecraftClient mc, CallbackInfo ci) {
-        if (Configs.Generic.ENABLE_LSBP.getBooleanValue()) {
+        try {
+            if (!Configs.Generic.ENABLE_LSBP.getBooleanValue()) {
+                ci.cancel();
+                return;
+            }
             ClientPlayerEntity player = mc.player;
+            if (player == null) {
+                Utils.LOGGER.error("LSBPInventoryUtilsMixin unknown error, player is null");
+                ci.cancel();
+                return;
+            }
             int slotId = findSlotWithBoxWithItem(player.currentScreenHandler, stack, false);
             int maxMoveCount = Configs.Generic.LSBP_COUNT.getIntegerValue();
-            if (slotId != -1 && PlayerSlotUtils.getPlayerSlotHaveEmpty(player.getInventory())) {
-                ItemStack boxStack = player.playerScreenHandler.slots.get(slotId).getStack();
-                if (!isItShulkerBox(boxStack)) {
-                    Utils.LOGGER.warn("LitematicaInventoryUtilsMixin already getStack for this item, return");
-                    ci.cancel();
-                    return;
-                }
-                if (mc.getCurrentServerEntry() == null) {
-                    Utils.LOGGER.warn("LitematicaInventoryUtilsMixin getStack client start");
-                    ServerPlayerEntity serverPlayer = mc.getServer().getPlayerManager().getPlayer(player.getUuid());
-                    PlayerSlotUtils.moveBoxItem(serverPlayer, stack, boxStack, maxMoveCount, slotId);
-                    setPickedItemToHand(stack, mc);
-                    Utils.LOGGER.warn("LitematicaInventoryUtilsMixin getStack client end");
-                    ci.cancel();
-                    return;
-                }
-                NbtElement stackNbt = stack.encode(Utils.REGISTRY);
-                NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
-                LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt);
-//                LSBPClientHandler.getInstance().encodeClientData(lsbpPacket);
-                ClientPlayNetworking.send(new LSBPPacket.Payload(lsbpPacket));
+            if (slotId == -1) {
+                Utils.LOGGER.warn("LSBPInventoryUtilsMixin not found for {}", stack);
+                ci.cancel();
+                return;
             }
+            boolean replaceWhenNoSlot = Configs.Generic.ENABLE_REPLACE_NO_SLOT.getBooleanValue();
+            ItemStack mainHandStack = player.getInventory().getMainHandStack();
+            // 获得包含物品的潜影盒
+            ItemStack boxStack = player.playerScreenHandler.slots.get(slotId).getStack();
+            if (!isItShulkerBox(boxStack)) {
+                Utils.LOGGER.error("LSBPInventoryUtilsMixin not a shulker box");
+                ci.cancel();
+                return;
+            }
+            if (mc.world == null) {
+                ci.cancel();
+                return;
+            }
+            if (mc.world.isClient) {// 客户端，直接替换
+                Utils.LOGGER.warn("LSBPInventoryUtilsMixin getStack client start");
+                if(mc.getServer() == null) {
+                    Utils.LOGGER.error("LSBPInventoryUtilsMixin can not get server");
+                    ci.cancel();
+                    return;
+                }
+                // 有空槽位-将原有潜影盒中的物品，取出来，放到空槽位，然后将物品放到主手 -- 会占用一个空槽位
+                // 没有空槽位-并且开启强制替换，将原有潜影盒中的物品，取出来，和主手的物品进行替换 --不占用空槽位
+                ServerPlayerEntity serverPlayer = mc.getServer().getPlayerManager().getPlayer(player.getUuid());
+                PlayerSlotUtils.moveBoxItem(serverPlayer, stack, boxStack, maxMoveCount, slotId, replaceWhenNoSlot);
+                setPickedItemToHand(stack, mc);
+                Utils.LOGGER.warn("LSBPInventoryUtilsMixin getStack client end");
+                ci.cancel();
+                return;
+            }
+            // 服务端发包出去
+            NbtElement stackNbt = stack.encode(Utils.REGISTRY);
+            NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
+            LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt);
+//                LSBPClientHandler.getInstance().encodeClientData(lsbpPacket);
+            ClientPlayNetworking.send(new LSBPPacket.Payload(lsbpPacket));
+
+        } catch (Exception e) {
+            Utils.LOGGER.error("LSBPInventoryUtilsMixin getStack error:", e);
         }
     }
 

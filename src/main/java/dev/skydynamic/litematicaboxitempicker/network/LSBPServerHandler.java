@@ -3,6 +3,7 @@ package dev.skydynamic.litematicaboxitempicker.network;
 import dev.skydynamic.litematicaboxitempicker.enumration.LSBPPacketType;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
+import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.servux.Servux;
 import fi.dy.masa.servux.dataproviders.LitematicsDataProvider;
 import fi.dy.masa.servux.network.IPluginServerPlayHandler;
@@ -178,7 +179,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
             ServerPlayNetworking.send(serverPlayer,new LSBPPacket.Payload(packet));
             return;
         }
-        PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, boxStack, maxCount, hasItemBoxSlotId);
+        PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, boxStack, maxCount, hasItemBoxSlotId, false);
         LSBPPacket packet = LSBPPacket.moveItemResponseSuccess(targetStack.encode(Utils.REGISTRY));
         ServerPlayNetworking.send(serverPlayer,new LSBPPacket.Payload(packet));
     }

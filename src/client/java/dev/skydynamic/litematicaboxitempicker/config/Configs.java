@@ -24,18 +24,20 @@ public class Configs implements IConfigHandler {
     public static class Generic {
         public static final ConfigBoolean ENABLE_LSBP = new ConfigBoolean("开启自动从盒子取出物品", false, "当开启后，使用 Litematica 模组的 轻松放置模式 时,\n若背包中物品不足,则会自动从盒子中取出");
         public static final ConfigInteger LSBP_COUNT = new ConfigInteger("取出数量", 32, 1, 64, "从潜影盒取出一次物品时的数量");
-        public static final ConfigBoolean ENABLE_LOGGING = new ConfigBoolean("开启详细日志打印", false, "当开启后，会详细打印每一步操作以及结果，如果功能无法使用，可以issue反馈贴上日志");
+        public static final ConfigBoolean ENABLE_LOGGING = new ConfigBoolean("开启详细日志打印", false, "开启后，会详细打印每一步操作以及结果，如果功能无法使用，可以issue反馈贴上日志");
+        public static final ConfigBoolean ENABLE_REPLACE_NO_SLOT = new ConfigBoolean("替换主手物品", false, "开启后，没有空余槽位时强制替换主手物品，原主手物品放回潜影盒");
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 ENABLE_LSBP,
                 LSBP_COUNT,
-                ENABLE_LOGGING
+                ENABLE_LOGGING,
+                ENABLE_REPLACE_NO_SLOT
         );
     }
 
     public static class Hotkeys {
 
-        public static final ConfigHotkey OPEN_GUI_MAIN_MENU = new ConfigHotkey("打开LSBP菜单", "X,C", KeybindSettings.RELEASE_EXCLUSIVE, "打开LSBP设置菜单");
+        public static final ConfigHotkey OPEN_GUI_MAIN_MENU = new ConfigHotkey("打开LSBP菜单", "K,C", KeybindSettings.RELEASE_EXCLUSIVE, "打开LSBP设置菜单");
         public static final ConfigHotkey ENABLE_LSBP = new ConfigHotkey("开启自动盒子补货", "", KeybindSettings.RELEASE_EXCLUSIVE, "开启自动盒子补货");
 
         public static final List<ConfigHotkey> HOTKEY_LIST = ImmutableList.of(
