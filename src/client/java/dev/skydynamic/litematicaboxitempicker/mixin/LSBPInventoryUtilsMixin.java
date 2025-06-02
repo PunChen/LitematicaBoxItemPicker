@@ -47,7 +47,7 @@ public abstract class LSBPInventoryUtilsMixin {
                 ci.cancel();
                 return;
             }
-            int slotId = findSlotWithBoxWithItem(player.currentScreenHandler, stack, false);
+            int slotId = findSlotWithBoxWithItem(player.currentScreenHandler, stack, true);
             int maxMoveCount = Configs.Generic.LSBP_COUNT.getIntegerValue();
             if (slotId == -1) {
                 Utils.LOGGER.warn("LSBPInventoryUtilsMixin not found for {}", stack);
@@ -79,7 +79,7 @@ public abstract class LSBPInventoryUtilsMixin {
                 // 潜影盒取出物品后，留下空槽位，则将找到的非空物品槽位放到潜影盒，然后将取出的物品放到背包，如果没有多于槽位则提示失败，
                 // 如果开启全背包检索空槽位，则可以将背包物品转移到其他潜影盒
                 ServerPlayerEntity serverPlayer = mc.getServer().getPlayerManager().getPlayer(player.getUuid());
-                PlayerSlotUtils.moveBoxItem(serverPlayer, stack, boxStack, maxMoveCount, slotId, noSlotCollectIntoBox);
+                PlayerSlotUtils.moveBoxItem(serverPlayer, stack, maxMoveCount, slotId, noSlotCollectIntoBox);
                 setPickedItemToHand(stack, mc);
                 Utils.LOGGER.warn("LSBPInventoryUtilsMixin getStack client end");
                 ci.cancel();

@@ -9,7 +9,6 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.collection.DefaultedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -18,18 +17,19 @@ public class Utils {
     public static final Logger LOGGER = LoggerFactory.getLogger(Reference.MOD_ID);
 
     public static final ItemStackRegistry REGISTRY = new ItemStackRegistry();
+    public static final int SHULKER_BOX_SIZE = 27;
 
     public static DefaultedList<ItemStack> getStoredItemsWithoutOrder(ItemStack stackIn) {
         ContainerComponent container = stackIn.getComponents().get(DataComponentTypes.CONTAINER);
         if (container != null) {
-            Iterator<ItemStack> iter = container.stream().iterator();
+            Iterator<ItemStack> iter = container.stream().iterator();// 不去除空格子，物品之间的空格子是 0xAIR
             DefaultedList<ItemStack> items = DefaultedList.ofSize((int) container.stream().count());
             while (iter.hasNext()) {
                 ItemStack stack = iter.next();
-                if (stack.isEmpty()) {
-                    stack = new ItemStack(Items.AIR);
-                }
                 items.add(stack);
+            }
+            for (int i = items.size(); i < SHULKER_BOX_SIZE; ++i) {// 补充潜影盒物品到27格
+                items.add(ItemStack.EMPTY);
             }
             return items;
         }
@@ -43,9 +43,47 @@ public class Utils {
         return itemStack;
     }
 
+    public static ItemStack removeItemFromBox(ItemStack boxStack, ItemStack toRemoveStack) {
+        String toRemoveId = toRemoveStack.getItem().toString();
+        DefaultedList<ItemStack> boxItems = getStoredItemsWithoutOrder(boxStack);//27格
+        for (int i = 0; i < boxItems.size(); ++i) {
+            String itemId = boxItems.get(i).getItem().toString();
+            if (Objects.equals(toRemoveId, itemId)) {
+                boxItems.set(i, ItemStack.EMPTY);
+                return createShulkerBoxWithNewItems(boxStack, boxItems);
+            }
+        }
+        return null;
+    }
+
+    public static ItemStack decreaseItemCountOfBox(ItemStack boxStack, ItemStack toUpdateStack) {
+        toUpdateStack.setCount(-toUpdateStack.getCount());
+        return setItemCountOfBox(boxStack, toUpdateStack);
+    }
+
+    public static ItemStack increaseItemCountOfBox(ItemStack boxStack, ItemStack toUpdateStack) {
+        return setItemCountOfBox(boxStack, toUpdateStack);
+    }
+
+    public static ItemStack setItemCountOfBox(ItemStack boxStack, ItemStack toUpdateStack) {
+        String toUpdateId = toUpdateStack.getItem().toString();
+        DefaultedList<ItemStack> boxItems = getStoredItemsWithoutOrder(boxStack);//27格
+        for (int i = 0; i < boxItems.size(); ++i) {
+            String itemId = boxItems.get(i).getItem().toString();
+            if (Objects.equals(toUpdateId, itemId)) {
+                ItemStack foundStack = boxItems.get(i);
+                foundStack.setCount(toUpdateStack.getCount());
+                boxItems.set(i, foundStack);
+                return createShulkerBoxWithNewItems(boxStack, boxItems);
+            }
+        }
+        return null;
+    }
+
+
     public static ItemStack addItemIntoBox(ItemStack boxStack, ItemStack toAddStack) {
         String toAddId = toAddStack.getItem().toString();
-        DefaultedList<ItemStack> boxItems = getStoredItemsWithoutOrder(boxStack);
+        DefaultedList<ItemStack> boxItems = getStoredItemsWithoutOrder(boxStack);//27格
         int emptyInd = -1;
         for (int i = 0; i < boxItems.size(); ++i) {
             if (boxItems.get(i).isEmpty()) {
@@ -53,6 +91,7 @@ public class Utils {
                 break;
             }
         }
+        Utils.LOGGER.warn("addItemIntoBox found emptySlot:{}", emptyInd);
         boolean success = false;
         for (int i = 0; i < boxItems.size(); ++i) {
             ItemStack stack = boxItems.get(i);
@@ -84,6 +123,7 @@ public class Utils {
         }
 
         if (success) {
+            Utils.LOGGER.warn("addItemIntoBox success");
             return createShulkerBoxWithNewItems(boxStack, boxItems);
         }
         return null;
