@@ -32,11 +32,10 @@ public class PlayerSlotUtils {
 
     // 获得空余的格子槽位id(除去盔甲栏和副手)
     public static int getPlayerEmptySlot(ServerPlayerEntity player) {
-        Inventory inventory = player.getInventory();
-        for (int i = 0; i < 36; i++) {
-            ItemStack stack = inventory.getStack(i);
-            if (stack.isEmpty()) {
-                return i;
+        PlayerInventory inventory = player.getInventory();
+        for (int ind = 0; ind < inventory.size(); ++ind) {
+            if (inventory.getStack(ind).isEmpty() && ind < inventory.main.size()) {
+                return ind;
             }
         }
         return -1;
@@ -77,16 +76,18 @@ public class PlayerSlotUtils {
     // 潜影盒取出物品后，留下空槽位，则将找到的非空物品槽位放到潜影盒，然后将取出的物品放到背包，如果没有多于槽位则提示失败，
     // 如果开启全背包检索空槽位，则可以将背包物品转移到其他潜影盒
     public static void moveBoxItem(ServerPlayerEntity player, ItemStack stack, int maxMoveCount,
-                                   int boxSlotId, boolean noSlotCollectIntoBox) {
+                                   ItemStack boxStack, int boxSlotId, boolean noSlotCollectIntoBox) {
         int emptySlotId = getPlayerEmptySlot(player);
+        Utils.LOGGER.warn("moveBoxItem emptySlotId {} noSlotCollectIntoBox {}", emptySlotId, noSlotCollectIntoBox);
         // 没有空槽位-并且没有开启满替换
         if (emptySlotId == -1 && !noSlotCollectIntoBox) {
             return;
         }
         // 有空槽位或者开启满替换
         // 获得潜影盒的物品列表
-        ItemStack boxStack = player.getInventory().getStack(boxSlotId);
         DefaultedList<ItemStack> boxItems = Utils.getStoredItemsWithoutOrder(boxStack);
+        ItemStack oneBoxStack = player.getInventory().getStack(boxSlotId);
+        Utils.LOGGER.warn("moveBoxItem oneBoxStack {} boxItems {} boxSlotId {}", oneBoxStack, boxItems, boxSlotId);
         String stackItemId = stack.getItem().toString();
         ItemStack boxItem = null;
         for (ItemStack oneStackInBox : boxItems) {
@@ -107,23 +108,22 @@ public class PlayerSlotUtils {
         }
 
         if (emptySlotId != -1) { // 有空槽位，新盒子替代，并且给玩家物品
-            ItemStack newBox = Utils.decreaseItemCountOfBox(boxStack, itemToGive.copy());
+            ItemStack newBox = Utils.decreaseItemCountOfBox(boxStack, itemToGive.getItem(), itemToGive.getCount());
             if (newBox == null) {
                 Utils.LOGGER.warn("moveBoxItem emptySlotId failed to move item {} from box", itemToGive);
                 return;
             }
             player.getInventory().setStack(boxSlotId, newBox);
             givePlayerItems(itemToGive, player, emptySlotId);
-        }
-
-        if (noSlotCollectIntoBox) {
+        } else {
             // 没有空槽位，开启物品回收 noSlotCollectIntoBox=true
             // 开启：没有空槽位时，回收物品到潜影盒
-            int toCollectSlotId = getFirstNoContainer(player);
+            int toCollectSlotId = getLastNoContainer(player);
+            Utils.LOGGER.warn("moveBoxItem getFirstNoContainer toCollectSlotId {}", toCollectSlotId);
             if (collectOneItemToBox(player, toCollectSlotId)) {// 可能会修改潜影盒内容，因此需要重新更新盒子中的内容
                 // 回收成功，toCollectSlotId成为空槽位
-                boxStack = player.getInventory().getStack(boxSlotId);// 重新获得潜影盒
-                ItemStack updateNewBox = Utils.decreaseItemCountOfBox(boxStack, itemToGive.copy());
+                boxStack = player.getInventory().getStack(boxSlotId); // 重新获得潜影盒
+                ItemStack updateNewBox = Utils.decreaseItemCountOfBox(boxStack, itemToGive.getItem(), itemToGive.getCount());
                 if (updateNewBox == null) {
                     Utils.LOGGER.warn("moveBoxItem noSlotCollectIntoBox failed to move item {} from box", itemToGive);
                     return;
@@ -145,6 +145,17 @@ public class PlayerSlotUtils {
         return -1;
     }
 
+    public static int getLastNoContainer(ServerPlayerEntity player) {
+        for (int ind = player.getInventory().main.size() - 1; ind >= 0; --ind) {
+            ItemStack oneStack = player.getInventory().getStack(ind);
+            ContainerComponent component = oneStack.getComponents().get(DataComponentTypes.CONTAINER);
+            if (component == null) {
+                return ind;
+            }
+        }
+        return -1;
+    }
+
 
     private static boolean tryCollectIntoBox(ServerPlayerEntity player, ItemStack toCollect) {
         //对所有的潜影盒便利，尝试放入，优先合并其次寻找空位
@@ -154,26 +165,13 @@ public class PlayerSlotUtils {
                 continue;
             }
             ItemStack newBoxStack = Utils.addItemIntoBox(boxStack, toCollect);
-            Utils.LOGGER.warn("tryCollectIntoBox boxStack:{} result:{}", boxStack, newBoxStack);
+            Utils.LOGGER.warn("tryCollectIntoBox boxStack:{} toCollect:{} result:{}", boxStack, toCollect, newBoxStack);
             if (newBoxStack != null) {// 放入成功
                 player.getInventory().setStack(ind, newBoxStack);
                 return true;
             }
         }
         return false;
-    }
-
-    public static void main(String[] args) {
-
-        ItemStack boxStack = new ItemStack(Items.SHULKER_BOX.asItem(), 1);
-        ItemStack itemStack = new ItemStack(Items.GLASS, 20);
-        ItemStack toAddStack = new ItemStack(Items.BLUE_CONCRETE, 20);
-        ContainerComponent containerComponent = ContainerComponent.fromStacks(Lists.newArrayList(itemStack));
-        boxStack.set(DataComponentTypes.CONTAINER, containerComponent);
-        ItemStack newBoxStack = Utils.addItemIntoBox(boxStack, toAddStack);
-
-        System.out.println(boxStack);
-        System.out.println(newBoxStack);
     }
 
 

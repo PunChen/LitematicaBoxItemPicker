@@ -47,9 +47,11 @@ public abstract class LSBPInventoryUtilsMixin {
                 ci.cancel();
                 return;
             }
-            int slotId = findSlotWithBoxWithItem(player.currentScreenHandler, stack, true);
+
+            int boxSlotId = Utils.findSlotWithBoxWithItem(player.getInventory(), stack);
             int maxMoveCount = Configs.Generic.LSBP_COUNT.getIntegerValue();
-            if (slotId == -1) {
+            Utils.LOGGER.warn("LSBPInventoryUtilsMixin boxSlotId {} maxMoveCount {} stack {}", boxSlotId, maxMoveCount, stack);
+            if (boxSlotId == -1) {
                 Utils.LOGGER.warn("LSBPInventoryUtilsMixin not found for {}", stack);
                 ci.cancel();
                 return;
@@ -57,7 +59,7 @@ public abstract class LSBPInventoryUtilsMixin {
             // 开启无空槽位物品回收潜影盒功能
             boolean noSlotCollectIntoBox = Configs.Generic.ENABLE_NO_SLOT_COLLECT_INTO_BOX.getBooleanValue();
             // 获得包含物品的潜影盒
-            ItemStack boxStack = player.playerScreenHandler.slots.get(slotId).getStack();
+            ItemStack boxStack = player.getInventory().getStack(boxSlotId);// main armor offhand
             if (!Utils.isItShulkerBox(boxStack)) {
                 Utils.LOGGER.error("LSBPInventoryUtilsMixin not a shulker box");
                 ci.cancel();
@@ -79,7 +81,7 @@ public abstract class LSBPInventoryUtilsMixin {
                 // 潜影盒取出物品后，留下空槽位，则将找到的非空物品槽位放到潜影盒，然后将取出的物品放到背包，如果没有多于槽位则提示失败，
                 // 如果开启全背包检索空槽位，则可以将背包物品转移到其他潜影盒
                 ServerPlayerEntity serverPlayer = mc.getServer().getPlayerManager().getPlayer(player.getUuid());
-                PlayerSlotUtils.moveBoxItem(serverPlayer, stack, maxMoveCount, slotId, noSlotCollectIntoBox);
+                PlayerSlotUtils.moveBoxItem(serverPlayer, stack, maxMoveCount, boxStack, boxSlotId, noSlotCollectIntoBox);
                 setPickedItemToHand(stack, mc);
                 Utils.LOGGER.warn("LSBPInventoryUtilsMixin getStack client end");
                 ci.cancel();
@@ -88,7 +90,7 @@ public abstract class LSBPInventoryUtilsMixin {
             // 服务端发包出去
             NbtElement stackNbt = stack.encode(Utils.REGISTRY);
             NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
-            LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, slotId, stackNbt, boxStackNbt);
+            LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, boxSlotId, stackNbt, boxStackNbt);
 //                LSBPClientHandler.getInstance().encodeClientData(lsbpPacket);
             ClientPlayNetworking.send(new LSBPPacket.Payload(lsbpPacket));
 

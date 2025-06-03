@@ -24,7 +24,7 @@ public class Configs implements IConfigHandler {
         public static final ConfigBoolean ENABLE_LSBP = new ConfigBoolean("开启自动从盒子取出物品", false, "当开启后，使用 Litematica 模组的 轻松放置模式 时,\n若背包中物品不足,则会自动从盒子中取出");
         public static final ConfigInteger LSBP_COUNT = new ConfigInteger("取出数量", 32, 1, 64, "从潜影盒取出一次物品时的数量");
         public static final ConfigBoolean ENABLE_LOGGING = new ConfigBoolean("开启详细日志打印", false, "开启后，会详细打印每一步操作以及结果，如果功能无法使用，可以issue反馈贴上日志");
-        public static final ConfigBoolean ENABLE_NO_SLOT_COLLECT_INTO_BOX = new ConfigBoolean("背包无空位回收物品到潜影盒", false, "开启后，没有空余槽位时强制替换主手物品，原主手物品放回潜影盒");
+        public static final ConfigBoolean ENABLE_NO_SLOT_COLLECT_INTO_BOX = new ConfigBoolean("背包无空位回收物品到潜影盒", false, "开启后，没有空余槽位时，将尝试回收物品放回潜影盒");
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 ENABLE_LSBP,
@@ -79,6 +79,8 @@ public class Configs implements IConfigHandler {
     public void onConfigsChanged() {
         saveToFile();
         loadFromFile();
+        // change whether detail logging
+        Utils.enableDetailLogging(Generic.ENABLE_LOGGING.getBooleanValue());
     }
 
     @Override

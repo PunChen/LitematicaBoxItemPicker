@@ -3,21 +3,42 @@ package dev.skydynamic.litematicaboxitempicker.utils;
 import dev.skydynamic.litematicaboxitempicker.registries.ItemStackRegistry;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.collection.DefaultedList;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 import java.util.Iterator;
 import java.util.Objects;
 
-public class Utils {
-    public static final Logger LOGGER = LoggerFactory.getLogger(Reference.MOD_ID);
+import static fi.dy.masa.litematica.util.InventoryUtils.doesShulkerBoxContainItem;
 
+public class Utils {
+    public static Logger LOGGER = LoggerFactory.getLogger(Reference.MOD_ID);
     public static final ItemStackRegistry REGISTRY = new ItemStackRegistry();
     public static final int SHULKER_BOX_SIZE = 27;
+
+    public static void enableDetailLogging(boolean enable) {
+        try {
+            org.apache.logging.log4j.core.Logger logger = LoggerContext.getContext().getLogger(Reference.MOD_ID);
+            System.out.println("enableDetailLogging:" + logger.getLevel());
+            if (enable) {
+                logger.setLevel(Level.ALL);
+            } else {
+                logger.setLevel(Level.OFF);
+            }
+        } catch (Exception e) {
+            System.out.println("enableDetailLogging error:" + e);
+        }
+    }
+
 
     public static DefaultedList<ItemStack> getStoredItemsWithoutOrder(ItemStack stackIn) {
         ContainerComponent container = stackIn.getComponents().get(DataComponentTypes.CONTAINER);
@@ -56,23 +77,23 @@ public class Utils {
         return null;
     }
 
-    public static ItemStack decreaseItemCountOfBox(ItemStack boxStack, ItemStack toUpdateStack) {
-        toUpdateStack.setCount(-toUpdateStack.getCount());
-        return setItemCountOfBox(boxStack, toUpdateStack);
+    public static ItemStack decreaseItemCountOfBox(ItemStack boxStack, Item toUpdateItem, int count) {
+        return setItemCountOfBox(boxStack, toUpdateItem, -count);
     }
 
-    public static ItemStack increaseItemCountOfBox(ItemStack boxStack, ItemStack toUpdateStack) {
-        return setItemCountOfBox(boxStack, toUpdateStack);
+    public static ItemStack increaseItemCountOfBox(ItemStack boxStack, Item toUpdateItem, int count) {
+        return setItemCountOfBox(boxStack, toUpdateItem, count);
     }
 
-    public static ItemStack setItemCountOfBox(ItemStack boxStack, ItemStack toUpdateStack) {
-        String toUpdateId = toUpdateStack.getItem().toString();
+    public static ItemStack setItemCountOfBox(ItemStack boxStack, Item toUpdateItem, int addCount) {
+        String toUpdateId = toUpdateItem.toString();
         DefaultedList<ItemStack> boxItems = getStoredItemsWithoutOrder(boxStack);//27格
+        Utils.LOGGER.warn("setItemCountOfBox toUpdateItem {} addCount {} boxItems:{}", toUpdateItem, addCount, boxItems);
         for (int i = 0; i < boxItems.size(); ++i) {
             String itemId = boxItems.get(i).getItem().toString();
             if (Objects.equals(toUpdateId, itemId)) {
                 ItemStack foundStack = boxItems.get(i);
-                foundStack.setCount(toUpdateStack.getCount());
+                foundStack.increment(addCount);
                 boxItems.set(i, foundStack);
                 return createShulkerBoxWithNewItems(boxStack, boxItems);
             }
@@ -92,6 +113,7 @@ public class Utils {
             }
         }
         Utils.LOGGER.warn("addItemIntoBox found emptySlot:{}", emptyInd);
+        Utils.LOGGER.warn("addItemIntoBox before boxItems:{}", boxItems);
         boolean success = false;
         for (int i = 0; i < boxItems.size(); ++i) {
             ItemStack stack = boxItems.get(i);
@@ -107,7 +129,7 @@ public class Utils {
                 } else if (emptyInd != -1) {
                     stack.setCount(maxCount);
                     toAddStack.setCount(totCount - maxCount);
-                    boxItems.set(i, toAddStack);
+                    boxItems.set(emptyInd, toAddStack);
                     success = true;
                     break;
                 } else {
@@ -121,7 +143,7 @@ public class Utils {
                 // can not set in empty slot
             }
         }
-
+        Utils.LOGGER.warn("addItemIntoBox after boxItems:{}", boxItems);
         if (success) {
             Utils.LOGGER.warn("addItemIntoBox success");
             return createShulkerBoxWithNewItems(boxStack, boxItems);
@@ -131,5 +153,15 @@ public class Utils {
 
     public static boolean isItShulkerBox(ItemStack boxStack) {
         return boxStack.getItem().toString().contains(Items.SHULKER_BOX.toString());
+    }
+
+    public static int findSlotWithBoxWithItem(PlayerInventory inventory, ItemStack stackReference) {
+        for (int ind = 0; ind < inventory.size(); ind++) {
+            ItemStack stack = inventory.getStack(ind);
+            if (Utils.isItShulkerBox(stack) && doesShulkerBoxContainItem(stack, stackReference)) {
+                return ind;
+            }
+        }
+        return -1;
     }
 }

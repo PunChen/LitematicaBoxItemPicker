@@ -174,7 +174,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
             return;
         }
         boolean noSlotCollectIntoBox = Configs.Generic.ENABLE_NO_SLOT_COLLECT_INTO_BOX.getBooleanValue();
-        PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, maxCount, hasItemBoxSlotId, noSlotCollectIntoBox);
+        PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, maxCount, boxStack, hasItemBoxSlotId, noSlotCollectIntoBox);
         LSBPPacket packet = LSBPPacket.moveItemResponseSuccess(targetStack.encode(Utils.REGISTRY));
         ServerPlayNetworking.send(serverPlayer, new LSBPPacket.Payload(packet));
     }
