@@ -1,7 +1,7 @@
 package dev.skydynamic.litematicaboxitempicker.mixin;
 
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
-import dev.skydynamic.litematicaboxitempicker.utils.Configs;
+import dev.skydynamic.litematicaboxitempicker.config.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
 import fi.dy.masa.litematica.util.InventoryUtils;
@@ -68,7 +68,7 @@ public abstract class LSBPInventoryUtilsMixin {
                 ci.cancel();
                 return;
             }
-            if (mc.world.isClient) { // 客户端，直接替换
+            if (mc.getCurrentServerEntry() == null) { // 客户端，直接替换
                 Utils.LOGGER.warn("LSBPInventoryUtilsMixin getStack client start");
                 if (mc.getServer() == null) {
                     Utils.LOGGER.error("LSBPInventoryUtilsMixin can not get server");
@@ -89,7 +89,7 @@ public abstract class LSBPInventoryUtilsMixin {
             // 服务端发包出去
             NbtElement stackNbt = stack.encode(Utils.REGISTRY);
             NbtElement boxStackNbt = boxStack.encode(Utils.REGISTRY);
-            LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, boxSlotId, stackNbt, boxStackNbt);
+            LSBPPacket lsbpPacket = LSBPPacket.moveItemRequest(maxMoveCount, boxSlotId, noSlotCollectIntoBox, stackNbt, boxStackNbt);
 //                LSBPClientHandler.getInstance().encodeClientData(lsbpPacket);
             ClientPlayNetworking.send(new LSBPPacket.Payload(lsbpPacket));
 

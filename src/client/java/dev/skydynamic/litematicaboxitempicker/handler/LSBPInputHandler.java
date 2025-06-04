@@ -1,7 +1,7 @@
 package dev.skydynamic.litematicaboxitempicker.handler;
 
 import com.google.common.collect.ImmutableList;
-import dev.skydynamic.litematicaboxitempicker.utils.Configs;
+import dev.skydynamic.litematicaboxitempicker.config.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.Reference;
 import fi.dy.masa.malilib.hotkeys.IHotkey;
 import fi.dy.masa.malilib.hotkeys.IKeybindManager;

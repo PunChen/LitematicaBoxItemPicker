@@ -21,12 +21,13 @@ public class LSBPPacket implements IClientPayloadData {
         this.clearPacket();
     }
 
-    public static LSBPPacket moveItemRequest(int maxMoveCount, int hasItemBoxSlotId,
+    public static LSBPPacket moveItemRequest(int maxMoveCount, int hasItemBoxSlotId, boolean noSlotCollectIntoBox,
                                              NbtElement targetStack, NbtElement boxStack) {
         LSBPPacket packet = new LSBPPacket();
         packet.buffer.writeVarInt(LSBPPacketType.PACKET_MOVE_ITEM_START.get());
         packet.buffer.writeVarInt(maxMoveCount);
         packet.buffer.writeVarInt(hasItemBoxSlotId);
+        packet.buffer.writeBoolean(noSlotCollectIntoBox);
         packet.buffer.writeNbt(targetStack);
         packet.buffer.writeNbt(boxStack);
         return packet;
