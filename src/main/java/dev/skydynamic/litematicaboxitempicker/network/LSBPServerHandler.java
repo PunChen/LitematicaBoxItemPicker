@@ -1,7 +1,6 @@
 package dev.skydynamic.litematicaboxitempicker.network;
 
 import dev.skydynamic.litematicaboxitempicker.enumration.LSBPPacketType;
-import dev.skydynamic.litematicaboxitempicker.utils.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.PlayerSlotUtils;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
 import fi.dy.masa.servux.Servux;
@@ -153,6 +152,7 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
     private void dealWithMoveItemRequest(ServerPlayerEntity serverPlayer, PacketByteBuf buffer) {
         int maxCount = buffer.readVarInt();
         int hasItemBoxSlotId = buffer.readVarInt();
+        boolean noSlotCollectIntoBox = buffer.readBoolean();
         Optional<ItemStack> targetStackOpt = ItemStack.fromNbt(Utils.REGISTRY, buffer.readNbt());
         Optional<ItemStack> boxStackOpt = ItemStack.fromNbt(Utils.REGISTRY, buffer.readNbt());
         if (targetStackOpt.isEmpty() || boxStackOpt.isEmpty()) {
@@ -164,13 +164,12 @@ public abstract class LSBPServerHandler<T extends CustomPayload> implements IPlu
         }
         ItemStack targetStack = targetStackOpt.get();
         ItemStack boxStack = boxStackOpt.get();
-        if (!PlayerSlotUtils.isPlayerHaveEmptySlot(serverPlayer)) {
+        if (!PlayerSlotUtils.isPlayerHaveEmptySlot(serverPlayer) && !noSlotCollectIntoBox) {
             Utils.LOGGER.warn("LSBPServerHandler receivePlayPayload player don't have empty slot");
             LSBPPacket packet = LSBPPacket.moveItemResponseFailure();
             ServerPlayNetworking.send(serverPlayer, new LSBPPacket.Payload(packet));
             return;
         }
-        boolean noSlotCollectIntoBox = Configs.Generic.ENABLE_NO_SLOT_COLLECT_INTO_BOX.getBooleanValue();
         PlayerSlotUtils.moveBoxItem(serverPlayer, targetStack, maxCount, boxStack, hasItemBoxSlotId, noSlotCollectIntoBox);
         LSBPPacket packet = LSBPPacket.moveItemResponseSuccess(targetStack.encode(Utils.REGISTRY));
         ServerPlayNetworking.send(serverPlayer, new LSBPPacket.Payload(packet));
