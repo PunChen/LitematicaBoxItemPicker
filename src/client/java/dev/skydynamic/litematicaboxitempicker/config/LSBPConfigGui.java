@@ -1,5 +1,6 @@
 package dev.skydynamic.litematicaboxitempicker.config;
 
+import dev.skydynamic.litematicaboxitempicker.utils.Configs;
 import dev.skydynamic.litematicaboxitempicker.utils.Reference;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.gui.GuiConfigsBase;
@@ -12,18 +13,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class LitematicaShulkerBoxPickerConfigGui extends GuiConfigsBase{
+public class LSBPConfigGui extends GuiConfigsBase {
 
     private static ConfigGuiTab tab = ConfigGuiTab.GENERIC;
 
-    public LitematicaShulkerBoxPickerConfigGui()
-    {
+    public LSBPConfigGui() {
         super(10, 50, Reference.MOD_ID, null, "LazyShulkerBoxConfig");
     }
 
     @Override
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
 
         this.clearOptions();
@@ -31,28 +30,24 @@ public class LitematicaShulkerBoxPickerConfigGui extends GuiConfigsBase{
         int x = 10;
         int y = 26;
 
-        for (ConfigGuiTab tab : ConfigGuiTab.values())
-        {
+        for (ConfigGuiTab tab : ConfigGuiTab.values()) {
             x += this.createButton(x, y, -1, tab) + 2;
         }
     }
 
-    private int createButton(int x, int y, int width, ConfigGuiTab tab)
-    {
+    private int createButton(int x, int y, int width, ConfigGuiTab tab) {
         ButtonGeneric button = new ButtonGeneric(x, y, width, 20, tab.getDisplayName());
-        button.setEnabled(LitematicaShulkerBoxPickerConfigGui.tab != tab);
+        button.setEnabled(LSBPConfigGui.tab != tab);
         this.addButton(button, new ButtonListener(tab, this));
 
         return button.getWidth();
     }
 
     @Override
-    protected int getConfigWidth()
-    {
-        ConfigGuiTab tab = LitematicaShulkerBoxPickerConfigGui.tab;
+    protected int getConfigWidth() {
+        ConfigGuiTab tab = LSBPConfigGui.tab;
 
-        if (tab == ConfigGuiTab.GENERIC)
-        {
+        if (tab == ConfigGuiTab.GENERIC) {
             return 200;
         }
 
@@ -60,14 +55,13 @@ public class LitematicaShulkerBoxPickerConfigGui extends GuiConfigsBase{
     }
 
     @Override
-    public List<ConfigOptionWrapper> getConfigs()
-    {
+    public List<ConfigOptionWrapper> getConfigs() {
         List<? extends IConfigBase> configs;
-        ConfigGuiTab tab = LitematicaShulkerBoxPickerConfigGui.tab;
+        ConfigGuiTab tab = LSBPConfigGui.tab;
 
         if (tab == ConfigGuiTab.GENERIC) {
             configs = Configs.Generic.OPTIONS;
-        } else if (tab == ConfigGuiTab.HOTKEYS){
+        } else if (tab == ConfigGuiTab.HOTKEYS) {
             configs = Configs.Hotkeys.HOTKEY_LIST;
         } else {
             return Collections.emptyList();
@@ -76,21 +70,18 @@ public class LitematicaShulkerBoxPickerConfigGui extends GuiConfigsBase{
         return ConfigOptionWrapper.createFor(configs);
     }
 
-    private static class ButtonListener implements IButtonActionListener
-    {
-        private final LitematicaShulkerBoxPickerConfigGui parent;
+    private static class ButtonListener implements IButtonActionListener {
+        private final LSBPConfigGui parent;
         private final ConfigGuiTab tab;
 
-        public ButtonListener(ConfigGuiTab tab, LitematicaShulkerBoxPickerConfigGui parent)
-        {
+        public ButtonListener(ConfigGuiTab tab, LSBPConfigGui parent) {
             this.tab = tab;
             this.parent = parent;
         }
 
         @Override
-        public void actionPerformedWithButton(ButtonBase button, int mouseButton)
-        {
-            LitematicaShulkerBoxPickerConfigGui.tab = this.tab;
+        public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
+            LSBPConfigGui.tab = this.tab;
 
             this.parent.reCreateListWidget(); // apply the new config width
             Objects.requireNonNull(this.parent.getListWidget()).resetScrollbarPosition();
@@ -98,20 +89,17 @@ public class LitematicaShulkerBoxPickerConfigGui extends GuiConfigsBase{
         }
     }
 
-    public enum ConfigGuiTab
-    {
-        GENERIC ("基础"),
-        HOTKEYS ("热键");
+    public enum ConfigGuiTab {
+        GENERIC("基础"),
+        HOTKEYS("热键");
 
         private final String translationKey;
 
-        ConfigGuiTab(String translationKey)
-        {
+        ConfigGuiTab(String translationKey) {
             this.translationKey = translationKey;
         }
 
-        public String getDisplayName()
-        {
+        public String getDisplayName() {
             return StringUtils.translate(this.translationKey);
         }
     }

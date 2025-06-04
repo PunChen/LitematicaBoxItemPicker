@@ -1,10 +1,10 @@
 package dev.skydynamic.litematicaboxitempicker.handler;
 
-import dev.skydynamic.litematicaboxitempicker.utils.Reference;
-import dev.skydynamic.litematicaboxitempicker.config.Configs;
-import dev.skydynamic.litematicaboxitempicker.config.LitematicaShulkerBoxPickerConfigGui;
-import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPClientHandler;
+import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
+import dev.skydynamic.litematicaboxitempicker.config.LSBPConfigGui;
+import dev.skydynamic.litematicaboxitempicker.utils.Configs;
+import dev.skydynamic.litematicaboxitempicker.utils.Reference;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
 import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.event.InputEventHandler;
@@ -24,24 +24,30 @@ public class InitHandler implements IInitializationHandler {
 
     @Override
     public void registerModHandlers() {
-        Utils.LOGGER.warn("LitematicaShulkerBoxPickerHandler registerModHandlers start");
-        ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, new Configs());
-        InputEventHandler.getKeybindManager().registerKeybindProvider(LitematicaShulkerBoxPickerInputHandler.getInstance());
+        Utils.LOGGER.warn("InitHandler registerModHandlers start");
+        try {
+            // 配置界面
+            ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, new Configs());
+            InputEventHandler.getKeybindManager().registerKeybindProvider(LSBPInputHandler.getInstance());
+            // 配置按钮
+            Configs.Hotkeys.OPEN_GUI_MAIN_MENU.getKeybind().setCallback(new KeyCallbackHotkeys());
+            Configs.Hotkeys.ENABLE_LSBP.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(Configs.Generic.ENABLE_LSBP));
 
-        Configs.Hotkeys.OPEN_GUI_MAIN_MENU.getKeybind().setCallback(new KeyCallbackHotkeys());
-        Configs.Hotkeys.ENABLE_LSBP.getKeybind().setCallback(new KeyCallbackToggleBooleanConfigWithMessage(Configs.Generic.ENABLE_LSBP));
-
-        ClientPlayHandler.getInstance().registerClientPlayHandler(HANDLER);
-        HANDLER.registerPlayPayload(LSBPPacket.Payload.ID,
-                LSBPPacket.Payload.CODEC, IPluginClientPlayHandler.BOTH_CLIENT);//客户端收发的
-        Utils.LOGGER.warn("LitematicaShulkerBoxPickerHandler registerModHandlers end");
+            // 注册数据包发送handler
+            ClientPlayHandler.getInstance().registerClientPlayHandler(HANDLER);
+            HANDLER.registerPlayPayload(LSBPPacket.Payload.ID,
+                    LSBPPacket.Payload.CODEC, IPluginClientPlayHandler.BOTH_CLIENT);//客户端收发的
+        } catch (Exception e) {
+            Utils.LOGGER.error("InitHandler registerModHandlers error:", e);
+        }
+        Utils.LOGGER.warn("InitHandler registerModHandlers end");
     }
 
     private static class KeyCallbackHotkeys implements IHotkeyCallback {
         @Override
         public boolean onKeyAction(KeyAction action, IKeybind key) {
             if (key == Configs.Hotkeys.OPEN_GUI_MAIN_MENU.getKeybind()) {
-                GuiBase.openGui(new LitematicaShulkerBoxPickerConfigGui());
+                GuiBase.openGui(new LSBPConfigGui());
             }
             return true;
         }

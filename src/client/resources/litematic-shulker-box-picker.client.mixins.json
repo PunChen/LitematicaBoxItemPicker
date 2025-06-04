@@ -4,7 +4,7 @@
   "package": "dev.skydynamic.litematicaboxitempicker.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "LitematicaInventoryUtilsMixin"
+    "LSBPInventoryUtilsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

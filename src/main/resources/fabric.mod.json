@@ -5,21 +5,22 @@
   "name": "LitematicaShulkerBoxPicker",
   "description": "从潜影盒取出相同物品",
   "authors": [
-    "SkyDynamic","PunChen"
+    "SkyDynamic",
+    "PunChen"
   ],
   "contact": {
     "issues": "https://github.com/SkyDynamic/LitematicaBoxItemPicker/issues/",
     "sources": "https://github.com/SkyDynamic/LitematicaBoxItemPicker/"
   },
   "license": "LGPL-3.0",
-  "icon": "assets/LitematicaShulkerBoxPicker/icon.png",
+  "icon": "assets/litematica-shulker-box-picker/icon.png",
   "environment": "*",
   "entrypoints": {
     "server": [
-      "dev.skydynamic.litematicaboxitempicker.LitematicaShulkerBoxPickerServer"
+      "dev.skydynamic.litematicaboxitempicker.LSBPServer"
     ],
     "client": [
-      "dev.skydynamic.litematicaboxitempicker.LitematicaShulkerBoxPickerClient"
+      "dev.skydynamic.litematicaboxitempicker.LSBPClient"
     ],
     "modmenu": [
       "dev.skydynamic.litematicaboxitempicker.compat.modmenu.ModMenuImpl"
@@ -27,7 +28,7 @@
   },
   "mixins": [
     "litematica-shulker-box-picker.mixins.json",
-  {
+    {
       "config": "litematic-shulker-box-picker.client.mixins.json",
       "environment": "client"
     }

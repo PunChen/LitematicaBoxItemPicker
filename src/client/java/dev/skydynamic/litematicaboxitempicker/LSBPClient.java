@@ -6,7 +6,7 @@ import dev.skydynamic.litematicaboxitempicker.utils.Utils;
 import fi.dy.masa.malilib.event.InitializationHandler;
 import net.fabricmc.api.ClientModInitializer;
 
-public class LitematicaShulkerBoxPickerClient implements ClientModInitializer {
+public class LSBPClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
