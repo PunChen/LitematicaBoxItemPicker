@@ -11,6 +11,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.collection.DefaultedList;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +28,11 @@ public class Utils {
 
     public static void enableDetailLogging(boolean enable) {
         try {
-            org.apache.logging.log4j.core.Logger logger = LoggerContext.getContext().getLogger(Reference.MOD_ID);
-            System.out.println("enableDetailLogging:" + logger.getLevel());
+            System.out.println("enableDetailLogging: " + enable);
             if (enable) {
-                logger.setLevel(Level.ALL);
+                Configurator.setLevel(Reference.MOD_ID, Level.ALL);
             } else {
-                logger.setLevel(Level.OFF);
+                Configurator.setLevel(Reference.MOD_ID, Level.OFF);
             }
         } catch (Exception e) {
             System.out.println("enableDetailLogging error:" + e);
