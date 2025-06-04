@@ -1,10 +1,10 @@
 package dev.skydynamic.litematicaboxitempicker.handler;
 
-import dev.skydynamic.litematicaboxitempicker.utils.Reference;
-import dev.skydynamic.litematicaboxitempicker.utils.Configs;
-import dev.skydynamic.litematicaboxitempicker.config.LSBPConfigGui;
-import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
 import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPClientHandler;
+import dev.skydynamic.litematicaboxitempicker.clientnetwork.LSBPPacket;
+import dev.skydynamic.litematicaboxitempicker.config.LSBPConfigGui;
+import dev.skydynamic.litematicaboxitempicker.utils.Configs;
+import dev.skydynamic.litematicaboxitempicker.utils.Reference;
 import dev.skydynamic.litematicaboxitempicker.utils.Utils;
 import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.event.InputEventHandler;

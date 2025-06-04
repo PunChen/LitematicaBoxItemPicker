@@ -13,18 +13,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class LSBPConfigGui extends GuiConfigsBase{
+public class LSBPConfigGui extends GuiConfigsBase {
 
     private static ConfigGuiTab tab = ConfigGuiTab.GENERIC;
 
-    public LSBPConfigGui()
-    {
+    public LSBPConfigGui() {
         super(10, 50, Reference.MOD_ID, null, "LazyShulkerBoxConfig");
     }
 
     @Override
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
 
         this.clearOptions();
@@ -32,14 +30,12 @@ public class LSBPConfigGui extends GuiConfigsBase{
         int x = 10;
         int y = 26;
 
-        for (ConfigGuiTab tab : ConfigGuiTab.values())
-        {
+        for (ConfigGuiTab tab : ConfigGuiTab.values()) {
             x += this.createButton(x, y, -1, tab) + 2;
         }
     }
 
-    private int createButton(int x, int y, int width, ConfigGuiTab tab)
-    {
+    private int createButton(int x, int y, int width, ConfigGuiTab tab) {
         ButtonGeneric button = new ButtonGeneric(x, y, width, 20, tab.getDisplayName());
         button.setEnabled(LSBPConfigGui.tab != tab);
         this.addButton(button, new ButtonListener(tab, this));
@@ -48,12 +44,10 @@ public class LSBPConfigGui extends GuiConfigsBase{
     }
 
     @Override
-    protected int getConfigWidth()
-    {
+    protected int getConfigWidth() {
         ConfigGuiTab tab = LSBPConfigGui.tab;
 
-        if (tab == ConfigGuiTab.GENERIC)
-        {
+        if (tab == ConfigGuiTab.GENERIC) {
             return 200;
         }
 
@@ -61,14 +55,13 @@ public class LSBPConfigGui extends GuiConfigsBase{
     }
 
     @Override
-    public List<ConfigOptionWrapper> getConfigs()
-    {
+    public List<ConfigOptionWrapper> getConfigs() {
         List<? extends IConfigBase> configs;
         ConfigGuiTab tab = LSBPConfigGui.tab;
 
         if (tab == ConfigGuiTab.GENERIC) {
             configs = Configs.Generic.OPTIONS;
-        } else if (tab == ConfigGuiTab.HOTKEYS){
+        } else if (tab == ConfigGuiTab.HOTKEYS) {
             configs = Configs.Hotkeys.HOTKEY_LIST;
         } else {
             return Collections.emptyList();
@@ -77,20 +70,17 @@ public class LSBPConfigGui extends GuiConfigsBase{
         return ConfigOptionWrapper.createFor(configs);
     }
 
-    private static class ButtonListener implements IButtonActionListener
-    {
+    private static class ButtonListener implements IButtonActionListener {
         private final LSBPConfigGui parent;
         private final ConfigGuiTab tab;
 
-        public ButtonListener(ConfigGuiTab tab, LSBPConfigGui parent)
-        {
+        public ButtonListener(ConfigGuiTab tab, LSBPConfigGui parent) {
             this.tab = tab;
             this.parent = parent;
         }
 
         @Override
-        public void actionPerformedWithButton(ButtonBase button, int mouseButton)
-        {
+        public void actionPerformedWithButton(ButtonBase button, int mouseButton) {
             LSBPConfigGui.tab = this.tab;
 
             this.parent.reCreateListWidget(); // apply the new config width
@@ -99,20 +89,17 @@ public class LSBPConfigGui extends GuiConfigsBase{
         }
     }
 
-    public enum ConfigGuiTab
-    {
-        GENERIC ("基础"),
-        HOTKEYS ("热键");
+    public enum ConfigGuiTab {
+        GENERIC("基础"),
+        HOTKEYS("热键");
 
         private final String translationKey;
 
-        ConfigGuiTab(String translationKey)
-        {
+        ConfigGuiTab(String translationKey) {
             this.translationKey = translationKey;
         }
 
-        public String getDisplayName()
-        {
+        public String getDisplayName() {
             return StringUtils.translate(this.translationKey);
         }
     }

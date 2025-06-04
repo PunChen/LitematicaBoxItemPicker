@@ -1,28 +1,13 @@
 package dev.skydynamic.litematicaboxitempicker.utils;
 
 
-import com.google.common.collect.Lists;
-import fi.dy.masa.litematica.util.InventoryUtils;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemStackSet;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.collection.DefaultedList;
-
-import java.util.Iterator;
-
-import static fi.dy.masa.litematica.util.InventoryUtils.findSlotWithBoxWithItem;
 
 public class PlayerSlotUtils {
 
